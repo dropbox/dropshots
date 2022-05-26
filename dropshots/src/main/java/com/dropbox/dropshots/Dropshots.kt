@@ -50,8 +50,6 @@ public class Dropshots : TestRule {
    *
    * If `BuildConfig.IS_RECORD_SCREENSHOTS` is set to `true`, then the screenshot will simply be written
    * to disk to be pulled to the host machine to update the reference images.
-   *
-   * See [Documentation](https://dropbox-kms.atlassian.net/wiki/spaces/MF/pages/521306389/Android+Screenshot+Testing) for more.
    */
   public fun assertSnapshot(
     view: View,
@@ -63,8 +61,6 @@ public class Dropshots : TestRule {
    *
    * If `BuildConfig.IS_RECORD_SCREENSHOTS` is set to `true`, then the screenshot will simply be written
    * to disk to be pulled to the host machine to update the reference images.
-   *
-   * See [Documentation](https://dropbox-kms.atlassian.net/wiki/spaces/MF/pages/521306389/Android+Screenshot+Testing) for more.
    */
   public fun assertSnapshot(
     activity: Activity,
@@ -100,34 +96,44 @@ public class Dropshots : TestRule {
     val result = try {
       differ.compare(BitmapImage(reference), BitmapImage(bitmap), mask)
     } catch (e: IllegalArgumentException) {
-      if (isRecordingScreenshots()) {
-        writeImage(filename, bitmap)
-        return
-      } else {
-        val diffImage = generateDiffImage(reference, bitmap, mask)
-        val outputFilePath = writeImage(filename, diffImage)
-        throw IllegalArgumentException(
+      writeThen(filename, reference, bitmap, mask) {
+        IllegalArgumentException(
           "Failed to compare images: reference{width=${reference.width}, height=${reference.height}} " +
             "<> bitmap{width=${bitmap.width}, height=${bitmap.height}}\n" +
-            "Output written to: $outputFilePath",
+            "Output written to: $it",
           e
         )
       }
+      return
     }
 
     // Assert
     if (result.pixelDifferences != 0) {
-      if (isRecordingScreenshots()) {
-        writeImage(filename, bitmap)
-      } else {
-        val diffImage = generateDiffImage(reference, bitmap, mask)
-        val outputFilePath = writeImage(filename, diffImage)
-        throw AssertionError(
-          "\"$name\" failed to match reference image. ${result.pixelDifferences} pixels differ " +
-            "(${(result.pixelDifferences / result.pixelCount.toFloat()) * 100} %)\n" +
-            "Output written to: $outputFilePath"
-        )
+      writeThen(filename, reference, bitmap, mask) {
+        AssertionError("\"$name\" failed to match reference image. ${result.pixelDifferences} pixels differ " +
+          "(${(result.pixelDifferences / result.pixelCount.toFloat()) * 100} %)\n" +
+          "Output written to: $it")
       }
+    }
+  }
+
+  /**
+   * Writes the test image if recording screenshots, otherwise creates and
+   * writes a diff, then throws the resulting throwable.
+   */
+  private fun writeThen(
+    filename: String,
+    referenceImage: Bitmap,
+    testImage: Bitmap,
+    mask: Mask,
+    message: (outputFilePath: String) -> Throwable
+  ) {
+    if (isRecordingScreenshots()) {
+      writeImage(filename, testImage)
+    } else {
+      val diffImage = generateDiffImage(referenceImage, testImage, mask)
+      val outputFilePath = writeImage(filename, diffImage)
+      throw message(outputFilePath)
     }
   }
 

@@ -161,11 +161,11 @@ class DbxScreenshotBuilder internal constructor(
     canvas.drawBitmap(testImage, referenceImage.width.toFloat() * 2, 0f, null)
 
     val diffPaint = Paint().apply {
-      color = Color.argb(1f, 1f, 0f, 0f)
+      color = 0x3DFF0000
       strokeWidth = 0f
     }
     val otherPaint = Paint().apply {
-      color = Color.argb(0.24f, 0f, 0f, 0f)
+      color = 0x3D000000
       strokeWidth = 0f
     }
     (0 until differenceMask.height).forEach { y ->

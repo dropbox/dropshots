@@ -39,6 +39,8 @@ pluginsManagement {
 
 ## Usage
 
+Dropshots is a Junit Rule.
+
 ## License
 
     Copyright (c) 2022 Dropbox, Inc.
