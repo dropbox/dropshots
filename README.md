@@ -41,6 +41,51 @@ pluginsManagement {
 
 Dropshots is a Junit Rule.
 
+### Write tests
+
+```kotlin
+class MyTest {
+  @get:Rule val activityScenarioRule = ActivityScenarioRule(TestActivity::class.java)
+
+  @get:Rule val dropshots = Dropshots()
+
+  @Before
+  fun setup() {
+    // Setup your activity however you like
+    activityScenarioRule.scenario.onActivity {
+      it.supportFragmentManager.beginTransaction()
+        .add(android.R.id.content, ScreenshotTestFragment())
+        .commitNow()
+    }
+  }
+
+  @Test
+  fun testMatchesActivityScreenshot() {
+    activityScenarioRule.scenario.onActivity {
+      // Assert activity snapshots
+      dropshots.assertSnapshot(it, "MatchesActivityScreenshot")
+    }
+  }
+
+  @Test
+  fun testMatchesViewScreenshot() {
+    activityScenarioRule.scenario.onActivity {
+      // or assert view snapshots.
+      dropshots.assertSnapshot(
+        it.findViewById<View>(android.R.id.content),
+        name = "MatchesViewScreenshot"
+      )
+    }
+  }
+}
+```
+
+### Recording new reference images
+
+```shell
+./gradlew :path:to:module:connectedAndroidTest -PrecordScreenshots
+```
+
 ## License
 
     Copyright (c) 2022 Dropbox, Inc.
