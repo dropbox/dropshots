@@ -39,52 +39,84 @@ pluginsManagement {
 
 ## Usage
 
-Dropshots is a Junit Rule.
+Once the Dropshots plugin is added to your project, some new tasks will be created to create,
+validate and manager your screenshot reference images. While you can use the tasks directly, they
+are also automatically injected into your project's task graph to run as part of your normal testing
+workflow.
 
 ### Write tests
 
+`Dropshots` screenshot tests are simply standard Android Instrumentation tests which use the runtime
+library to compare screenshots with reference images. Simply add the `Dropshots` rule to an
+instrumentation test, setup the view you'd like to test, and use the `Dropshots.assertSnapshot`
+functions to validate them.
+
 ```kotlin
 class MyTest {
-  @get:Rule val activityScenarioRule = ActivityScenarioRule(TestActivity::class.java)
+    @get:Rule
+    val activityScenarioRule = ActivityScenarioRule(TestActivity::class.java)
 
-  @get:Rule val dropshots = Dropshots()
+    @get:Rule
+    val dropshots = Dropshots()
 
-  @Before
-  fun setup() {
-    // Setup your activity however you like
-    activityScenarioRule.scenario.onActivity {
-      it.supportFragmentManager.beginTransaction()
-        .add(android.R.id.content, ScreenshotTestFragment())
-        .commitNow()
+    @Before
+    fun setup() {
+        // Setup your activity however you like
+        activityScenarioRule.scenario.onActivity {
+            it.supportFragmentManager.beginTransaction()
+                .add(android.R.id.content, ScreenshotTestFragment())
+                .commitNow()
+        }
     }
-  }
 
-  @Test
-  fun testMatchesActivityScreenshot() {
-    activityScenarioRule.scenario.onActivity {
-      // Assert activity snapshots
-      dropshots.assertSnapshot(it, "MatchesActivityScreenshot")
+    @Test
+    fun testMatchesActivityScreenshot() {
+        activityScenarioRule.scenario.onActivity {
+            // Assert activity snapshots
+            dropshots.assertSnapshot(it, "MatchesActivityScreenshot")
+        }
     }
-  }
 
-  @Test
-  fun testMatchesViewScreenshot() {
-    activityScenarioRule.scenario.onActivity {
-      // or assert view snapshots.
-      dropshots.assertSnapshot(
-        it.findViewById<View>(android.R.id.content),
-        name = "MatchesViewScreenshot"
-      )
+    @Test
+    fun testMatchesViewScreenshot() {
+        activityScenarioRule.scenario.onActivity {
+            // or assert view snapshots.
+            dropshots.assertSnapshot(
+                it.findViewById<View>(android.R.id.content),
+                name = "MatchesViewScreenshot"
+            )
+        }
     }
-  }
 }
 ```
 
-### Recording new reference images
+With this test in place, any time the `connectedAndroidTest` task is run the screenshot of the
+Activity or View will be validated against the reference images stored in the repository. If any
+screenshots fail to match the reference images (within configurable thresholds), then an image will
+be written to the test report folder that shows the reference image, the actual image, and the diff
+of the two. By default, the test report folder is
+`${project.buildDir}/outputs/androidTest-results/connected`.
+
+The first time you create a screenshot test, however, there won't be any reference images, so you'll
+have to create them...
+
+### Updating reference images
+
+Updating reference screenshots is as simple as running the tests with a `recordScreenshtos` property
+added to Gradle. This makes it easy to update screenshots in a single step, without requiring you to
+interact with the emulator or use esoteric `adb` commands.
+
+> **Important**: Ensure that you record screenshots on an emulator that's been configured in the
+> same way as the emulators on which you'll validate the screenshots.
 
 ```shell
 ./gradlew :path:to:module:connectedAndroidTest -PrecordScreenshots
 ```
+
+After running this command, you'll see that all reference screenshots for the module will have been
+updated in the `${project.projectDir}/screenshots` directory. After that, running connected tests,
+either from the `gradlew` CLI or directly from the IDE, will validate the screenshots against the
+new reference images.
 
 ## License
 
