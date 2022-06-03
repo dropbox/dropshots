@@ -55,6 +55,10 @@ tasks.withType<SourcesJar>().configureEach {
   dependsOn(generateVersionTask)
 }
 
+tasks.named("dokkaJavadoc").configure {
+  dependsOn(generateVersionTask)
+}
+
 tasks.named("compileKotlin").configure {
   dependsOn(generateVersionTask)
 }
