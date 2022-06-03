@@ -32,7 +32,7 @@ jobs:
           distribution: 'zulu'
           java-version: 11
 
-      - name: Test Plugin
+      - name: Run Tests
         run: ./gradlew clean check --no-daemon --stacktrace
 
       - name: (Fail-only) Bundle test reports
