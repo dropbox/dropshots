@@ -77,16 +77,12 @@ kotlin {
 
 gradlePlugin {
   plugins {
-    plugins.create("dropshots2") {
-      id = "com.dropbox.dropshots2"
+    plugins.create("dropshots") {
+      id = "com.dropbox.dropshots"
       implementationClass = "com.dropbox.dropshots.DropshotsPlugin"
     }
   }
 }
-
-//mavenPublish {
-//  sonatypeHost = S01
-//}
 
 dependencies {
   compileOnly(gradleApi())

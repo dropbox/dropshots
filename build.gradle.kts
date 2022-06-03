@@ -12,9 +12,9 @@ allprojects {
   version = project.property("VERSION_NAME") as String
 
   repositories {
-        google()
-        mavenCentral()
-    }
+    google()
+    mavenCentral()
+  }
 
   plugins.withId("com.vanniktech.maven.publish.base") {
     configure<MavenPublishBaseExtension> {
@@ -32,4 +32,3 @@ tasks.register("printVersionName") {
     println(VERSION_NAME)
   }
 }
-

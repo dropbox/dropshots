@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.util.Base64
 import android.util.Log
 import android.view.View
 import androidx.test.platform.app.InstrumentationRegistry
@@ -206,5 +207,27 @@ public class Dropshots : TestRule {
       }
     }
     return false
+  }
+}
+
+/**
+ * Creates a filename from the requested name that'll be 64 characters or less.
+ *
+ * If the requested name is longer that 64 characters, it'll be shortened by
+ * encoding the end of the name, leaving the beginning in tact to hopefully provide
+ * somewhat human readable names while still trying to prevent collisions.
+ */
+internal fun String.toFilename(): String {
+  return if (length < 64) {
+    this
+  } else {
+    val prefix = substring(0, 32)
+    val suffix = String(Base64.encode(substring(32).toByteArray(), Base64.DEFAULT)).trim()
+    "${prefix}_$suffix"
+  }.let {
+    // Changes doesn't support spaces in artifact names so we also have to
+    // replace them with underscores.
+    // See https://jira.dropboxer.net/browse/DEVHELP-1350
+    it.replace(" ", "_")
   }
 }

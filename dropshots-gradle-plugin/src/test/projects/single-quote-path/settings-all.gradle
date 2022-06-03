@@ -1,3 +1,0 @@
-include(":module")
-
-project(":module").projectDir = new File("${rootProject.projectDir}\\build\\notnowhere")
