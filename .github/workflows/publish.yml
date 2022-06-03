@@ -69,7 +69,7 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
 
       - name: Retrieve Version
-        run: echo "VERSION_NAME=$(./gradlew -q printVersionName)" >> $GITHUB_ENV
+        run: echo "VERSION_NAME=$(./gradlew -q :printVersionName)" >> $GITHUB_ENV
 
       - name: Publish release (main only)
         run: ./gradlew closeAndReleaseRepository --no-daemon --no-parallel
