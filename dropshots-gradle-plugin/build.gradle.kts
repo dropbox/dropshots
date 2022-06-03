@@ -1,4 +1,9 @@
+import com.vanniktech.maven.publish.AndroidLibrary
+import com.vanniktech.maven.publish.GradlePlugin
+import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.JavadocJar.Dokka
 import com.vanniktech.maven.publish.SonatypeHost.S01
+import com.vanniktech.maven.publish.tasks.SourcesJar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -27,6 +32,10 @@ sourceSets {
   }
 }
 
+mavenPublishing {
+  configure(GradlePlugin(Dokka("dokkaJavadoc")))
+}
+
 val generateVersionTask = tasks.register("generateVersion") {
   inputs.property("version", project.property("VERSION_NAME") as String)
   outputs.dir(project.layout.projectDirectory.dir("src/generated/kotlin"))
@@ -40,6 +49,10 @@ val generateVersionTask = tasks.register("generateVersion") {
       |public const val VERSION: String = "${inputs.properties["version"]}"
     """.trimMargin())
   }
+}
+
+tasks.withType<SourcesJar>().configureEach {
+  dependsOn(generateVersionTask)
 }
 
 tasks.named("compileKotlin").configure {
