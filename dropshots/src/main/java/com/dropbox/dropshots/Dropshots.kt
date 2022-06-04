@@ -1,16 +1,15 @@
 package com.dropbox.dropshots
 
+import android.Manifest
 import android.app.Activity
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.util.Base64
-import android.util.Log
 import android.view.View
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.rule.GrantPermissionRule
 import androidx.test.runner.screenshot.Screenshot
 import com.dropbox.differ.Mask
 import com.dropbox.differ.SimpleImageComparator
@@ -27,6 +26,8 @@ public class Dropshots : TestRule {
   private var className: String = ""
   private var testName: String = ""
 
+  private val permissionRule = GrantPermissionRule.grant(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+
   private val snapshotName: String get() = "${packageName}_${className}_${testName}"
 
   override fun apply(base: Statement, description: Description): Statement {
@@ -38,7 +39,7 @@ public class Dropshots : TestRule {
         testName = description.methodName
 
         try {
-          base.evaluate()
+          permissionRule.apply(base, description).evaluate()
         } finally {
 
         }
@@ -146,7 +147,6 @@ public class Dropshots : TestRule {
     val screenFolder = File("$externalStoragePath/screenshots/${context.packageName}")
     screenFolder.mkdirs()
 
-    // Changes doesn't support spaces in artifact names: https://jira.dropboxer.net/browse/DEVHELP-1350
     val file = File(screenFolder, "${name.replace(" ", "_")}.png")
     file.outputStream().use {
       screenshot.compress(Bitmap.CompressFormat.PNG, 100, it)
@@ -188,25 +188,9 @@ public class Dropshots : TestRule {
   }
 
   private fun isRecordingScreenshots(): Boolean {
-    try {
-      val info = context.packageManager.getApplicationInfo(
-        context.packageName, PackageManager.GET_META_DATA
-      )
-      val packageName = info.packageName
-      val buildConfigClassName = "$packageName.BuildConfig"
-      val clazz = Class.forName(buildConfigClassName)
-      val field = clazz.getField("IS_RECORD_SCREENSHOTS")
-      return field.getBoolean(clazz)
-    } catch (e: Exception) {
-      when (e) {
-        is PackageManager.NameNotFoundException, is ClassNotFoundException,
-        is NoSuchFieldException, is IllegalAccessException ->
-          Log.d("Dropshots", "Unable to find project path: $e")
-        else ->
-          throw e
-      }
-    }
-    return false
+    return context.resources.getBoolean(
+      context.resources.getIdentifier("is_recording_screenshots", "bool", context.packageName)
+    )
   }
 }
 

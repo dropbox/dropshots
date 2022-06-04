@@ -37,6 +37,7 @@ dependencies {
   api(libs.differ)
 
   implementation(libs.androidx.test.runner)
+  implementation(libs.androidx.test.rules)
   implementation("androidx.appcompat:appcompat:1.4.1")
   implementation("com.google.android.material:material:1.4.0")
 

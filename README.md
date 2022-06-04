@@ -90,6 +90,9 @@ class MyTest {
 }
 ```
 
+> Note: For now, you'll need to ensure your app declares the `WRITE_EXTERNAL_STORAGE` permission
+> usage, at least in the test configurations. I'm hoping to remove that requirement.
+
 With this test in place, any time the `connectedAndroidTest` task is run the screenshot of the
 Activity or View will be validated against the reference images stored in the repository. If any
 screenshots fail to match the reference images (within configurable thresholds), then an image will

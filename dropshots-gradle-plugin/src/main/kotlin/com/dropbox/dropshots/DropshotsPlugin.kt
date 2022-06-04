@@ -19,7 +19,7 @@ public class DropshotsPlugin : Plugin<Project> {
 
     val androidExtension = getAndroidExtension()
     androidExtension.buildTypes.getByName("debug") {
-      it.buildConfigField("boolean", "IS_RECORD_SCREENSHOTS", isRecordingScreenshots.toString())
+      it.resValue("bool", "is_recording_screenshots", isRecordingScreenshots.toString())
     }
 
     project.afterEvaluate {
@@ -40,7 +40,7 @@ public class DropshotsPlugin : Plugin<Project> {
     val adbExecutablePath = provider { androidExtension.adbExecutable.path }
     androidExtension.testVariants.all { variant ->
       val testTaskProvider = variant.connectedInstrumentTestProvider
-      val screenshotDir = provider { "/storage/emulated/0/Download/screenshots/${variant.applicationId}" }
+      val screenshotDir = provider { "/storage/emulated/0/screenshots/${variant.testedVariant.applicationId}" }
 
       val clearScreenshotsTask = tasks.register(
         "clear${variant.name.capitalized()}Screenshots",
