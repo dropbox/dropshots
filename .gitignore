@@ -10,6 +10,7 @@ build
 out
 lib
 reports
+**/src/generated
 
 .idea
 *.iml
