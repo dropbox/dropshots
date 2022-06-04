@@ -21,7 +21,7 @@ Apply the plugin in your module's `build.gradle` file.
 plugins {
   id("com.android.application")
   // or id("com.android.library")
-  id("com.dropbox.dropshots") version "0.1.0"
+  id("com.dropbox.dropshots") version "0.1.1"
 }
 ```
 
