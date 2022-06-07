@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.os.Environment
 import android.util.Base64
 import android.view.View
 import androidx.test.platform.app.InstrumentationRegistry
@@ -143,10 +144,8 @@ public class Dropshots : TestRule {
    * Writes the given screenshot to the external storage directory.
    */
   private fun writeImage(name: String, screenshot: Bitmap): String {
-    val externalStoragePath = System.getenv("EXTERNAL_STORAGE")!!
-    val screenFolder = File("$externalStoragePath/screenshots/${context.packageName}")
+    val screenFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath
     screenFolder.mkdirs()
-
     val file = File(screenFolder, "${name.replace(" ", "_")}.png")
     file.outputStream().use {
       screenshot.compress(Bitmap.CompressFormat.PNG, 100, it)
