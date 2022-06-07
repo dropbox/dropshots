@@ -105,7 +105,7 @@ have to create them...
 
 ### Updating reference images
 
-Updating reference screenshots is as simple as running the tests with a `recordScreenshtos` property
+Updating reference screenshots is as simple as running the tests with a `recordScreenshots` property
 added to Gradle. This makes it easy to update screenshots in a single step, without requiring you to
 interact with the emulator or use esoteric `adb` commands.
 
