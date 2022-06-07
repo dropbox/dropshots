@@ -144,7 +144,7 @@ public class Dropshots : TestRule {
    * Writes the given screenshot to the external storage directory.
    */
   private fun writeImage(name: String, screenshot: Bitmap): String {
-    val screenFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath
+    val screenFolder = "${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath}//screenshots/${context.packageName}"
     screenFolder.mkdirs()
     val file = File(screenFolder, "${name.replace(" ", "_")}.png")
     file.outputStream().use {
