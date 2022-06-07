@@ -23,6 +23,19 @@ plugins {
   // or id("com.android.library")
   id("com.dropbox.dropshots") version "0.1.1"
 }
+
+//build.gradle (groovy)
+buildscript {
+    repositories {
+        mavenCentral()
+
+    }
+    dependencies {
+        classpath 'com.dropbox.dropshots:com.dropbox.dropshots.gradle.plugin:0.1.1'
+    }
+}
+apply plugin: 'com.android.library'
+apply plugin: 'com.dropbox.dropshots'
 ```
 
 Note that the plugin is currently published to Maven Central, so you need to add it to the repositories list in `settings.gradle`.
