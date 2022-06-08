@@ -16,6 +16,8 @@ compared to those reference images right within your test.
 
 Apply the plugin in your module's `build.gradle` file.
 
+**Using the plugins DSL:**
+
 ```groovy
 // build.gradle(.kts)
 plugins {
@@ -36,6 +38,25 @@ pluginsManagement {
   }
 }
 ```
+
+<details>
+  <summary>Using legacy plugin application</summary>
+
+```groovy
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+  dependencies {
+    classpath "com.dropbox.dropshots:dropshots-gradle-plugin:0.1.1"
+  }
+}
+
+apply plugin: "com.android.application"
+// or apply plugin: "com.android.library"
+apply plugin: "com.dropbox.dropshots"
+```
+</details>
 
 ## Usage
 
