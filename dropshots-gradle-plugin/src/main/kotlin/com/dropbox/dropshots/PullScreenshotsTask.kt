@@ -29,9 +29,19 @@ public abstract class PullScreenshotsTask : DefaultTask() {
     val outputDir = outputDirectory.get().asFile
     outputDir.mkdirs()
 
-    project.exec {
-      it.executable = adbExecutable.get()
-      it.args = listOf("pull", "${screenshotDir.get()}/.", outputDir.path)
+    val adb = adbExecutable.get()
+    val dir = screenshotDir.get()
+    val checkResult = project.exec {
+      it.executable = adb
+      it.args = listOf("shell", "test", "-d", dir)
+      it.isIgnoreExitValue = true
+    }
+
+    if (checkResult.exitValue == 0) {
+      project.exec {
+        it.executable = adb
+        it.args = listOf("pull", "$dir/.", outputDir.path)
+      }
     }
   }
 }

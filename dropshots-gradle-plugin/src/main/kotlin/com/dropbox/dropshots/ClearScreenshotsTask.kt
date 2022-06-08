@@ -21,9 +21,19 @@ public abstract class ClearScreenshotsTask : DefaultTask() {
 
   @TaskAction
   public fun clearScreenshots() {
-    project.exec {
-      it.executable = adbExecutable.get()
-      it.args = listOf("shell", "rm", "-r", screenshotDir.get())
+    val adb = adbExecutable.get()
+    val dir = screenshotDir.get()
+    val checkResult = project.exec {
+      it.executable = adb
+      it.args = listOf("shell", "test", "-d", dir)
+      it.isIgnoreExitValue = true
+    }
+
+    if (checkResult.exitValue == 0) {
+      project.exec {
+        it.executable = adb
+        it.args = listOf("shell", "rm", "-r", dir)
+      }
     }
   }
 }
