@@ -19,7 +19,16 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 public class Dropshots(
-  public val recordScreenshots: Boolean = isRecordingScreenshots()
+  /**
+   * Function to create a filename from a snapshot name (i.e. the name provided when taking
+   * the snapshot).
+   */
+  private val filenameFunc: (String) -> String = defaultFilenameFunc,
+  /**
+   * Indicates whether new reference screenshots should be recorded. Otherwise Dropshots performs
+   * validation of test screenshots against reference screenshots.
+   */
+  private val recordScreenshots: Boolean = isRecordingScreenshots()
 ) : TestRule {
   private val context = InstrumentationRegistry.getInstrumentation().context
   private val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
@@ -74,7 +83,7 @@ public class Dropshots(
     bitmap: Bitmap,
     name: String
   ) {
-    val filename = name.toFilename()
+    val filename = filenameFunc(name)
 
     val reference = try {
       context.assets.open("$filename.png").use {
@@ -213,17 +222,16 @@ internal fun isRecordingScreenshots(): Boolean {
  * encoding the end of the name, leaving the beginning in tact to hopefully provide
  * somewhat human readable names while still trying to prevent collisions.
  */
-internal fun String.toFilename(): String {
-  return if (length < 64) {
-    this
+internal val defaultFilenameFunc = { testName: String ->
+  if (testName.length < 64) {
+    testName
   } else {
-    val prefix = substring(0, 32)
-    val suffix = String(Base64.encode(substring(32).toByteArray(), Base64.DEFAULT)).trim()
+    val prefix = testName.substring(0, 32)
+    val suffix = String(Base64.encode(testName.substring(32).toByteArray(), Base64.DEFAULT)).trim()
     "${prefix}_$suffix"
   }.let {
-    // Changes doesn't support spaces in artifact names so we also have to
+    // Some CI filesystems don't support spaces in artifact names so we also have to
     // replace them with underscores.
-    // See https://jira.dropboxer.net/browse/DEVHELP-1350
     it.replace(" ", "_")
   }
 }
