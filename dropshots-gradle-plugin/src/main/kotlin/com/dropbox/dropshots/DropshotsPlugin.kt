@@ -41,7 +41,7 @@ public class DropshotsPlugin : Plugin<Project> {
     val adbExecutablePath = provider { androidExtension.adbExecutable.path }
     androidExtension.testVariants.all { variant ->
       val testTaskProvider = variant.connectedInstrumentTestProvider
-      
+
       val appId = if (variant.testedVariant is ApkVariant) {
         variant.testedVariant.applicationId
       } else {
