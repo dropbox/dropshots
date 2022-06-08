@@ -3,6 +3,7 @@ package com.dropbox.dropshots
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.LibraryExtension
 import com.android.build.gradle.TestedExtension
+import com.android.build.gradle.api.ApkVariant
 import com.android.build.gradle.internal.tasks.AndroidTestTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -15,7 +16,7 @@ public class DropshotsPlugin : Plugin<Project> {
 
   override fun apply(target: Project): Unit = target.run {
     val isRecordingScreenshots = hasProperty(RECORD_PROPERTY_NAME)
-    val referenceScreenshotDirectory = project.layout.projectDirectory.dir("screenshots")
+    val referenceScreenshotDirectory = project.layout.projectDirectory.dir("src/androidTest/screenshots")
 
     val androidExtension = getAndroidExtension()
     androidExtension.buildTypes.getByName("debug") {
@@ -40,7 +41,13 @@ public class DropshotsPlugin : Plugin<Project> {
     val adbExecutablePath = provider { androidExtension.adbExecutable.path }
     androidExtension.testVariants.all { variant ->
       val testTaskProvider = variant.connectedInstrumentTestProvider
-      val screenshotDir = provider { "/storage/emulated/0/screenshots/${variant.testedVariant.applicationId}" }
+      
+      val appId = if (variant.testedVariant is ApkVariant) {
+        variant.testedVariant.applicationId
+      } else {
+        variant.applicationId
+      }
+      val screenshotDir = provider { "/storage/emulated/0/Download/screenshots/$appId" }
 
       val clearScreenshotsTask = tasks.register(
         "clear${variant.name.capitalized()}Screenshots",

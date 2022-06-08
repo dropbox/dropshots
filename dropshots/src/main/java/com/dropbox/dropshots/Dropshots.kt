@@ -1,15 +1,14 @@
 package com.dropbox.dropshots
 
-import android.Manifest
 import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.os.Environment
 import android.util.Base64
 import android.view.View
 import androidx.test.platform.app.InstrumentationRegistry
-import androidx.test.rule.GrantPermissionRule
 import androidx.test.runner.screenshot.Screenshot
 import com.dropbox.differ.Mask
 import com.dropbox.differ.SimpleImageComparator
@@ -20,15 +19,14 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 public class Dropshots : TestRule {
-  private val context = InstrumentationRegistry.getInstrumentation().targetContext
+  private val context = InstrumentationRegistry.getInstrumentation().context
+  private val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
   private var fqName: String = ""
   private var packageName: String = ""
   private var className: String = ""
   private var testName: String = ""
 
-  private val permissionRule = GrantPermissionRule.grant(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-
-  private val snapshotName: String get() = "${packageName}_${className}_${testName}"
+  private val snapshotName: String get() = testName
 
   override fun apply(base: Statement, description: Description): Statement {
     return object : Statement() {
@@ -39,7 +37,7 @@ public class Dropshots : TestRule {
         testName = description.methodName
 
         try {
-          permissionRule.apply(base, description).evaluate()
+          base.evaluate()
         } finally {
 
         }
@@ -85,7 +83,8 @@ public class Dropshots : TestRule {
         writeImage(filename, bitmap)
         return
       } else {
-        throw e
+        throw IllegalStateException("Failed to find reference image named $filename.png. " +
+          "If this is a new test, you may need to record screenshots by adding `recordScreenshots=true` to your gradle.properties file, or gradlew with `-PrecordScreenshots`.", e)
       }
     }
 
@@ -143,9 +142,12 @@ public class Dropshots : TestRule {
    * Writes the given screenshot to the external storage directory.
    */
   private fun writeImage(name: String, screenshot: Bitmap): String {
-    val externalStoragePath = System.getenv("EXTERNAL_STORAGE")!!
-    val screenFolder = File("$externalStoragePath/screenshots/${context.packageName}")
-    screenFolder.mkdirs()
+    val externalStorageDir = Environment
+      .getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+    val screenFolder = File(externalStorageDir, "screenshots/${targetContext.packageName}")
+    if (!screenFolder.exists() && !screenFolder.mkdirs()) {
+      throw IllegalStateException("Unable to create screenshot storage directory.")
+    }
 
     val file = File(screenFolder, "${name.replace(" ", "_")}.png")
     file.outputStream().use {
@@ -188,8 +190,8 @@ public class Dropshots : TestRule {
   }
 
   private fun isRecordingScreenshots(): Boolean {
-    return context.resources.getBoolean(
-      context.resources.getIdentifier("is_recording_screenshots", "bool", context.packageName)
+    return targetContext.resources.getBoolean(
+      targetContext.resources.getIdentifier("is_recording_screenshots", "bool", targetContext.packageName)
     )
   }
 }
