@@ -1,9 +1,9 @@
 package com.dropbox.dropshots
 
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.FragmentActivity
 
-class TestActivity : AppCompatActivity() {
+class TestActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
     }

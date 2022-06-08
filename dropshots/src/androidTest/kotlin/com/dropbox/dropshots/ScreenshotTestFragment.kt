@@ -9,7 +9,7 @@ import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
 
 class ScreenshotTestFragment : Fragment() {
-  override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+  override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
     return LinearLayout(inflater.context).apply {
       orientation = LinearLayout.VERTICAL
 

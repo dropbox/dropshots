@@ -1,9 +1,7 @@
 package com.dropbox.dropshots
 
-import android.Manifest
 import android.view.View
 import androidx.test.ext.junit.rules.ActivityScenarioRule
-import androidx.test.rule.GrantPermissionRule
 import java.io.File
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
@@ -14,14 +12,10 @@ import org.junit.Test
 class DropshotsTest {
 
   @get:Rule
-  val permissionRule = GrantPermissionRule
-    .grant(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-
-  @get:Rule
   val activityScenarioRule = ActivityScenarioRule(TestActivity::class.java)
 
   @get:Rule
-  val dropshots = Dropshots()
+  val dropshots = Dropshots(recordScreenshots = false)
 
   @Before
   fun setup() {

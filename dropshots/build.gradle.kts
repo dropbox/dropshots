@@ -1,6 +1,5 @@
 import com.vanniktech.maven.publish.AndroidLibrary
 import com.vanniktech.maven.publish.JavadocJar.Dokka
-import com.vanniktech.maven.publish.SonatypeHost.S01
 
 plugins {
   alias(libs.plugins.android.library)
@@ -15,7 +14,7 @@ android {
   compileSdk = 32
 
   defaultConfig {
-    minSdk = 23
+    minSdk = 19
     targetSdk = 32
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -36,14 +35,11 @@ kotlin {
 dependencies {
   api(libs.differ)
 
+  implementation(libs.androidx.annotation)
   implementation(libs.androidx.test.runner)
   implementation(libs.androidx.test.rules)
-  implementation("androidx.appcompat:appcompat:1.4.1")
-  implementation("com.google.android.material:material:1.4.0")
 
   androidTestImplementation(libs.junit)
-  androidTestImplementation(libs.androidx.activity)
-  androidTestImplementation(libs.androidx.core)
   androidTestImplementation(libs.androidx.fragment)
   androidTestImplementation(libs.androidx.test.core)
   androidTestImplementation(libs.androidx.test.ext.junit)

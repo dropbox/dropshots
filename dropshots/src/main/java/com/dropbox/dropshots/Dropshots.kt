@@ -18,7 +18,9 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
-public class Dropshots : TestRule {
+public class Dropshots(
+  public val recordScreenshots: Boolean = isRecordingScreenshots()
+) : TestRule {
   private val context = InstrumentationRegistry.getInstrumentation().context
   private val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
   private var fqName: String = ""
@@ -79,7 +81,7 @@ public class Dropshots : TestRule {
         BitmapFactory.decodeStream(it)
       }
     } catch (e: FileNotFoundException) {
-      if (isRecordingScreenshots()) {
+      if (recordScreenshots) {
         writeImage(filename, bitmap)
         return
       } else {
@@ -129,7 +131,7 @@ public class Dropshots : TestRule {
     mask: Mask,
     message: (outputFilePath: String) -> Throwable
   ) {
-    if (isRecordingScreenshots()) {
+    if (recordScreenshots) {
       writeImage(filename, testImage)
     } else {
       val diffImage = generateDiffImage(referenceImage, testImage, mask)
@@ -188,12 +190,20 @@ public class Dropshots : TestRule {
     }
     return output
   }
+}
 
-  private fun isRecordingScreenshots(): Boolean {
-    return targetContext.resources.getBoolean(
-      targetContext.resources.getIdentifier("is_recording_screenshots", "bool", targetContext.packageName)
-    )
-  }
+/**
+ * Reads the target application's `is_recording_screenshots` boolean resource to determine if
+ * Dropshots should record screenshots or validate them.
+ */
+internal fun isRecordingScreenshots(): Boolean {
+  val context = InstrumentationRegistry.getInstrumentation().targetContext
+  val resId = context.resources.getIdentifier(
+    "is_recording_screenshots",
+    "bool",
+    context.packageName
+  )
+  return if (resId == 0) false else context.resources.getBoolean(resId)
 }
 
 /**
