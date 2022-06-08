@@ -1,8 +1,5 @@
-import com.vanniktech.maven.publish.AndroidLibrary
 import com.vanniktech.maven.publish.GradlePlugin
-import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.JavadocJar.Dokka
-import com.vanniktech.maven.publish.SonatypeHost.S01
 import com.vanniktech.maven.publish.tasks.SourcesJar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -101,17 +98,22 @@ gradlePlugin {
   }
 }
 
+// See https://github.com/slackhq/keeper/pull/11#issuecomment-579544375 for context
+val releaseMode = hasProperty("dropshots.releaseMode")
 dependencies {
   compileOnly(gradleApi())
   implementation(platform(libs.kotlin.bom))
   // Don't impose our version of KGP on consumers
   compileOnly(libs.kotlin.plugin)
-  compileOnly(libs.android)
+
+  if (releaseMode) {
+    compileOnly(libs.android)
+  } else {
+    implementation(libs.android)
+  }
 
   testImplementation(gradleTestKit())
   testImplementation(platform(libs.kotlin.bom))
-  testImplementation(libs.kotlin.plugin)
-  testImplementation(libs.android)
   testImplementation(libs.junit)
   testImplementation(libs.truth)
 }

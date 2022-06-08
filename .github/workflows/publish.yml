@@ -61,7 +61,7 @@ jobs:
           java-version: 11
 
       - name: Upload Snapshot
-        run: ./gradlew clean publish --no-daemon --no-parallel --no-configuration-cache --stacktrace
+        run: ./gradlew clean publish -Pdropshots.releaseMode=true --no-daemon --no-parallel --no-configuration-cache --stacktrace
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.SONATYPE_USERNAME }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SONATYPE_PASSWORD }}

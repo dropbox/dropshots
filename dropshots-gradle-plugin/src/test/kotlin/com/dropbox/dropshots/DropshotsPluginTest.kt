@@ -17,7 +17,6 @@ class DropshotsPluginTest {
   }
 
   @Test
-  @Ignore("Working out the compileOnly testkit classpath.")
   fun configurationCache() {
     val fixtureRoot = File("src/test/projects/configuration-cache-compatible")
 
