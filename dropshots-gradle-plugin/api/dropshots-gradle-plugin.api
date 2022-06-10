@@ -6,14 +6,9 @@ public abstract class com/dropbox/dropshots/ClearScreenshotsTask : org/gradle/ap
 }
 
 public final class com/dropbox/dropshots/DropshotsPlugin : org/gradle/api/Plugin {
-	public static final field Companion Lcom/dropbox/dropshots/DropshotsPlugin$Companion;
-	public static final field RECORD_PROPERTY_NAME Ljava/lang/String;
 	public fun <init> ()V
 	public synthetic fun apply (Ljava/lang/Object;)V
 	public fun apply (Lorg/gradle/api/Project;)V
-}
-
-public final class com/dropbox/dropshots/DropshotsPlugin$Companion {
 }
 
 public abstract class com/dropbox/dropshots/PullScreenshotsTask : org/gradle/api/DefaultTask {
