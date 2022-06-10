@@ -42,12 +42,15 @@ public class DropshotsPlugin : Plugin<Project> {
     androidExtension.testVariants.all { variant ->
       val testTaskProvider = variant.connectedInstrumentTestProvider
 
-      val appId = if (variant.testedVariant is ApkVariant) {
-        variant.testedVariant.applicationId
-      } else {
-        variant.applicationId
+      val screenshotDir = provider {
+        val appId = if (variant.testedVariant is ApkVariant) {
+          variant.testedVariant.applicationId
+        } else {
+          variant.packageApplicationProvider.get().applicationId
+          variant.applicationId
+        }
+        "/storage/emulated/0/Download/screenshots/$appId"
       }
-      val screenshotDir = provider { "/storage/emulated/0/Download/screenshots/$appId" }
 
       val clearScreenshotsTask = tasks.register(
         "clear${variant.name.capitalized()}Screenshots",

@@ -28,13 +28,13 @@ class DropshotsPluginTest {
 
   @Test
   fun `applies to library plugins applied after plugin`() {
-    val fixtureRoot = File("src/test/projects/configuration-cache-compatible")
+    val fixtureRoot = File("src/test/projects/dropshots-before-android-plugin")
 
     val result = gradleRunner
       .withArguments(":module:tasks", "--configuration-cache", "--stacktrace")
       .runFixture(fixtureRoot) { build() }
-    assertThat(result.output).contains("updateDebugScreenshots")
-    assertThat(result.output).contains("pullDebugScreenshots")
+    assertThat(result.output).contains("updateDebugAndroidTestScreenshots")
+    assertThat(result.output).contains("pullDebugAndroidTestScreenshots")
   }
 
   private fun GradleRunner.runFixture(
