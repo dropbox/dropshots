@@ -23,7 +23,7 @@ Apply the plugin in your module's `build.gradle` file.
 plugins {
   id("com.android.application")
   // or id("com.android.library")
-  id("com.dropbox.dropshots") version "0.1.1"
+  id("com.dropbox.dropshots") version "0.2.0"
 }
 ```
 
@@ -48,7 +48,7 @@ buildscript {
     mavenCentral()
   }
   dependencies {
-    classpath "com.dropbox.dropshots:dropshots-gradle-plugin:0.1.1"
+    classpath "com.dropbox.dropshots:dropshots-gradle-plugin:0.2.0"
   }
 }
 
