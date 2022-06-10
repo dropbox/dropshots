@@ -1,7 +1,9 @@
 package com.dropbox.dropshots
 
 import com.android.build.gradle.AppExtension
+import com.android.build.gradle.AppPlugin
 import com.android.build.gradle.LibraryExtension
+import com.android.build.gradle.LibraryPlugin
 import com.android.build.gradle.TestedExtension
 import com.android.build.gradle.api.ApkVariant
 import com.android.build.gradle.internal.tasks.AndroidTestTask
@@ -9,17 +11,30 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.configurationcache.extensions.capitalized
 
+private const val recordScreenshotsArg = "dropshots.record"
+
 public class DropshotsPlugin : Plugin<Project> {
-  public companion object {
-    public const val RECORD_PROPERTY_NAME: String = "recordScreenshots"
+  override fun apply(project: Project) {
+    project.plugins.all { plugin ->
+      when (plugin) {
+        is LibraryPlugin -> {
+          val extension = project.extensions.findByType(LibraryExtension::class.java)
+            ?: throw Exception("Failed to find Android extension")
+          project.configureDropshots(extension)
+        }
+        is AppPlugin -> {
+          val extension = project.extensions.findByType(AppExtension::class.java)
+            ?: throw Exception("Failed to find Android extension")
+          project.configureDropshots(extension)
+        }
+      }
+    }
   }
 
-  override fun apply(target: Project): Unit = target.run {
-    val isRecordingScreenshots = hasProperty(RECORD_PROPERTY_NAME)
-    val referenceScreenshotDirectory = project.layout.projectDirectory.dir("src/androidTest/screenshots")
+  private fun Project.configureDropshots(extension: TestedExtension) {
+    val isRecordingScreenshots = hasProperty(recordScreenshotsArg)
 
-    val androidExtension = getAndroidExtension()
-    androidExtension.buildTypes.getByName("debug") {
+    extension.buildTypes.getByName("debug") {
       it.resValue("bool", "is_recording_screenshots", isRecordingScreenshots.toString())
     }
 
@@ -30,16 +45,18 @@ public class DropshotsPlugin : Plugin<Project> {
       )
     }
 
-    val androidTestSourceSet = androidExtension.sourceSets.findByName("androidTest")
-    requireNotNull(androidTestSourceSet) {
-      "Failed to find androidTest source set."
-    }
+    val androidTestSourceSet = extension.sourceSets.findByName("androidTest")
+      ?: throw Exception("Failed to find androidTest source set")
+
+    // TODO configure this via extension
+    val referenceScreenshotDirectory = layout.projectDirectory.dir("src/androidTest/screenshots")
+
     androidTestSourceSet.assets {
       srcDirs(referenceScreenshotDirectory)
     }
 
-    val adbExecutablePath = provider { androidExtension.adbExecutable.path }
-    androidExtension.testVariants.all { variant ->
+    val adbExecutablePath = provider { extension.adbExecutable.path }
+    extension.testVariants.all { variant ->
       val testTaskProvider = variant.connectedInstrumentTestProvider
 
       val screenshotDir = provider {

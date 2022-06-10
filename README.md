@@ -123,7 +123,7 @@ have to create them...
 
 ### Updating reference images
 
-Updating reference screenshots is as simple as running the tests with a `recordScreenshots` property
+Updating reference screenshots is as simple as running the tests with a `dropshots.record` property
 added to Gradle. This makes it easy to update screenshots in a single step, without requiring you to
 interact with the emulator or use esoteric `adb` commands.
 
@@ -131,7 +131,7 @@ interact with the emulator or use esoteric `adb` commands.
 > same way as the emulators on which you'll validate the screenshots.
 
 ```shell
-./gradlew :path:to:module:connectedAndroidTest -PrecordScreenshots
+./gradlew :path:to:module:connectedAndroidTest -Pdropshots.record
 ```
 
 After running this command, you'll see that all reference screenshots for the module will have been

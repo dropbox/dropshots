@@ -104,12 +104,13 @@ dependencies {
   compileOnly(gradleApi())
   implementation(platform(libs.kotlin.bom))
   // Don't impose our version of KGP on consumers
-  compileOnly(libs.kotlin.plugin)
 
   if (releaseMode) {
     compileOnly(libs.android)
+    compileOnly(libs.kotlin.plugin)
   } else {
     implementation(libs.android)
+    implementation(libs.kotlin.plugin)
   }
 
   testImplementation(gradleTestKit())

@@ -95,7 +95,7 @@ public class Dropshots(
         return
       } else {
         throw IllegalStateException("Failed to find reference image named $filename.png. " +
-          "If this is a new test, you may need to record screenshots by adding `recordScreenshots=true` to your gradle.properties file, or gradlew with `-PrecordScreenshots`.", e)
+          "If this is a new test, you may need to record screenshots by adding `dropshots.record=true` to your gradle.properties file, or gradlew with `-Pdropshots.record`.", e)
       }
     }
 
