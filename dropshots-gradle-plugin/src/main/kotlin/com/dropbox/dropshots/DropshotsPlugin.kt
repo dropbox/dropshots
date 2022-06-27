@@ -15,19 +15,16 @@ private const val recordScreenshotsArg = "dropshots.record"
 
 public class DropshotsPlugin : Plugin<Project> {
   override fun apply(project: Project) {
-    project.plugins.all { plugin ->
-      when (plugin) {
-        is LibraryPlugin -> {
-          val extension = project.extensions.findByType(LibraryExtension::class.java)
-            ?: throw Exception("Failed to find Android extension")
-          project.configureDropshots(extension)
-        }
-        is AppPlugin -> {
-          val extension = project.extensions.findByType(AppExtension::class.java)
-            ?: throw Exception("Failed to find Android extension")
-          project.configureDropshots(extension)
-        }
-      }
+    project.pluginManager.withPlugin("com.android.application") {
+      val extension = project.extensions.findByType(AppExtension::class.java)
+        ?: throw Exception("Failed to find Android Application extension")
+      project.configureDropshots(extension)
+    }
+
+    project.pluginManager.withPlugin("com.android.library") {
+      val extension = project.extensions.findByType(LibraryExtension::class.java)
+        ?: throw Exception("Failed to find Android Library extension")
+      project.configureDropshots(extension)
     }
   }
 
