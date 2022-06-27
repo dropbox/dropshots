@@ -5,10 +5,12 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.os.Build
 import android.os.Environment
 import android.util.Base64
 import android.view.View
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.rule.GrantPermissionRule
 import androidx.test.runner.screenshot.Screenshot
 import com.dropbox.differ.Mask
 import com.dropbox.differ.SimpleImageComparator
@@ -47,10 +49,13 @@ public class Dropshots(
         className = fqName.substringAfterLast('.', missingDelimiterValue = "")
         testName = description.methodName
 
-        try {
+        if (Build.VERSION.SDK_INT <= 28) {
+          val permissionRule = GrantPermissionRule.grant(
+            android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+          )
+          permissionRule.apply(base, description)
+        } else {
           base.evaluate()
-        } finally {
-
         }
       }
     }
