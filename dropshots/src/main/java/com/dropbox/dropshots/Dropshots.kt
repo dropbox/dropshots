@@ -12,6 +12,7 @@ import android.view.View
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
 import androidx.test.runner.screenshot.Screenshot
+import com.dropbox.differ.ImageComparator
 import com.dropbox.differ.Mask
 import com.dropbox.differ.SimpleImageComparator
 import java.io.File
@@ -30,7 +31,11 @@ public class Dropshots(
    * Indicates whether new reference screenshots should be recorded. Otherwise Dropshots performs
    * validation of test screenshots against reference screenshots.
    */
-  private val recordScreenshots: Boolean = isRecordingScreenshots()
+  private val recordScreenshots: Boolean = isRecordingScreenshots(),
+  /**
+   * The `ImageComparator` used to compare test and reference screenshots.
+   */
+  private val imageComparator: ImageComparator = SimpleImageComparator(maxDistance = 0.004f)
 ) : TestRule {
   private val context = InstrumentationRegistry.getInstrumentation().context
   private val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
@@ -104,14 +109,9 @@ public class Dropshots(
       }
     }
 
-    val differ = SimpleImageComparator(
-      maxDistance = 0.004f,
-      hShift = 5,
-      vShift = 5,
-    )
     val mask = Mask(bitmap.width, bitmap.height)
     val result = try {
-      differ.compare(BitmapImage(reference), BitmapImage(bitmap), mask)
+      imageComparator.compare(BitmapImage(reference), BitmapImage(bitmap), mask)
     } catch (e: IllegalArgumentException) {
       writeThen(filename, reference, bitmap, mask) {
         IllegalArgumentException(
