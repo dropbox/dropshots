@@ -42,22 +42,17 @@ public class Dropshots(
   private val snapshotName: String get() = testName
 
   override fun apply(base: Statement, description: Description): Statement {
-    return object : Statement() {
-      override fun evaluate() {
-        fqName = description.className
-        packageName = fqName.substringBeforeLast('.', missingDelimiterValue = "")
-        className = fqName.substringAfterLast('.', missingDelimiterValue = "")
-        testName = description.methodName
+    fqName = description.className
+    packageName = fqName.substringBeforeLast('.', missingDelimiterValue = "")
+    className = fqName.substringAfterLast('.', missingDelimiterValue = "")
+    testName = description.methodName
 
-        if (Build.VERSION.SDK_INT <= 28) {
-          val permissionRule = GrantPermissionRule.grant(
-            android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-          )
-          permissionRule.apply(base, description)
-        } else {
-          base.evaluate()
-        }
-      }
+    return if (Build.VERSION.SDK_INT <= 28) {
+      GrantPermissionRule
+        .grant(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        .apply(base, description)
+    } else {
+      base
     }
   }
 
@@ -99,8 +94,26 @@ public class Dropshots(
         writeImage(filename, bitmap)
         return
       } else {
-        throw IllegalStateException("Failed to find reference image named $filename.png. " +
-          "If this is a new test, you may need to record screenshots by adding `dropshots.record=true` to your gradle.properties file, or gradlew with `-Pdropshots.record`.", e)
+        throw IllegalStateException(
+          "Failed to find reference image named $filename.png. " +
+            "If this is a new test, you may need to record screenshots by adding `dropshots.record=true` to your gradle.properties file, or gradlew with `-Pdropshots.record`.",
+          e
+        )
+      }
+    }
+
+    if (bitmap.width != reference.width || bitmap.height != reference.height) {
+      if (recordScreenshots) {
+        writeImage(filename, bitmap)
+        return
+      } else {
+        writeThen(filename, reference, bitmap, null) { outputPath ->
+          AssertionError(
+            "$name: Test image (w=${bitmap.width}, h=${bitmap.height}) differs in size" +
+              " from reference image (w=${reference.width}, h=${reference.height}).\n" +
+              "Output written to: $outputPath"
+          )
+        }
       }
     }
 
@@ -127,9 +140,11 @@ public class Dropshots(
     // Assert
     if (result.pixelDifferences != 0) {
       writeThen(filename, reference, bitmap, mask) {
-        AssertionError("\"$name\" failed to match reference image. ${result.pixelDifferences} pixels differ " +
-          "(${(result.pixelDifferences / result.pixelCount.toFloat()) * 100} %)\n" +
-          "Output written to: $it")
+        AssertionError(
+          "\"$name\" failed to match reference image. ${result.pixelDifferences} pixels differ " +
+            "(${(result.pixelDifferences / result.pixelCount.toFloat()) * 100} %)\n" +
+            "Output written to: $it"
+        )
       }
     }
   }
@@ -142,7 +157,7 @@ public class Dropshots(
     filename: String,
     referenceImage: Bitmap,
     testImage: Bitmap,
-    mask: Mask,
+    mask: Mask?,
     message: (outputFilePath: String) -> Throwable
   ) {
     if (recordScreenshots) {
@@ -176,30 +191,40 @@ public class Dropshots(
    * Generates a `Bitmap` consisting of the reference image, the test image, and
    * an image that highlights the differences between the two.
    */
-  private fun generateDiffImage(referenceImage: Bitmap, testImage: Bitmap, differenceMask: Mask): Bitmap {
+  private fun generateDiffImage(
+    referenceImage: Bitmap,
+    testImage: Bitmap,
+    differenceMask: Mask?
+  ): Bitmap {
     // Render the failed screenshots to an output image
+    val maskWidth = differenceMask?.width ?: 0
+    val maskHeight = differenceMask?.height ?: 0
     val output = Bitmap.createBitmap(
-      referenceImage.width + testImage.width + differenceMask.width,
-      maxOf(referenceImage.height, testImage.height, differenceMask.height),
+      referenceImage.width + testImage.width + maskWidth,
+      maxOf(referenceImage.height, testImage.height, maskHeight),
       Bitmap.Config.ARGB_8888,
     )
     val canvas = Canvas(output)
     canvas.drawBitmap(referenceImage, 0f, 0f, null)
-    canvas.drawBitmap(referenceImage, referenceImage.width.toFloat(), 0f, null)
-    canvas.drawBitmap(testImage, referenceImage.width.toFloat() * 2, 0f, null)
+    canvas.drawBitmap(testImage, referenceImage.width.toFloat() + maskWidth, 0f, null)
 
-    val diffPaint = Paint().apply {
-      color = 0x3DFF0000
-      strokeWidth = 0f
-    }
-    val otherPaint = Paint().apply {
-      color = 0x3D000000
-      strokeWidth = 0f
-    }
-    (0 until differenceMask.height).forEach { y ->
-      (0 until differenceMask.width).forEach { x ->
-        val paint = if (differenceMask.getValue(x, y) > 0) diffPaint else otherPaint
-        canvas.drawPoint(referenceImage.width + x.toFloat(), y.toFloat(), paint)
+    // If we have a mask, draw it between the reference image and the test image.
+    if (differenceMask != null) {
+      canvas.drawBitmap(referenceImage, referenceImage.width.toFloat(), 0f, null)
+
+      val diffPaint = Paint().apply {
+        color = 0x3DFF0000
+        strokeWidth = 0f
+      }
+      val otherPaint = Paint().apply {
+        color = 0x3D000000
+        strokeWidth = 0f
+      }
+      (0 until differenceMask.height).forEach { y ->
+        (0 until differenceMask.width).forEach { x ->
+          val paint = if (differenceMask.getValue(x, y) > 0) diffPaint else otherPaint
+          canvas.drawPoint(referenceImage.width + x.toFloat(), y.toFloat(), paint)
+        }
       }
     }
     return output

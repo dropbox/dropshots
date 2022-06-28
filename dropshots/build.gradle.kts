@@ -1,3 +1,4 @@
+import com.android.build.api.dsl.ManagedVirtualDevice
 import com.vanniktech.maven.publish.AndroidLibrary
 import com.vanniktech.maven.publish.JavadocJar.Dokka
 
@@ -39,11 +40,13 @@ dependencies {
   implementation(libs.androidx.test.runner)
   implementation(libs.androidx.test.rules)
 
+  debugImplementation(libs.androidx.fragment)
+
   androidTestImplementation(libs.junit)
-  androidTestImplementation(libs.androidx.fragment)
   androidTestImplementation(libs.androidx.test.core)
   androidTestImplementation(libs.androidx.test.ext.junit)
   androidTestImplementation(libs.androidx.test.rules)
+  androidTestImplementation(libs.androidx.test.runner)
 }
 
 mavenPublishing {
