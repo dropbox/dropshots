@@ -1,6 +1,6 @@
 [versions]
 kotlin = "1.6.21"
-agp = "7.3.0-alpha09"
+agp = "7.2.1"
 androidx-core = "1.7.0"
 androidx-test = "1.4.0"
 androidx-test-ext = "1.1.3"
