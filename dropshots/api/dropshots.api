@@ -7,8 +7,8 @@ public final class com/dropbox/dropshots/BuildConfig {
 
 public final class com/dropbox/dropshots/Dropshots : org/junit/rules/TestRule {
 	public fun <init> ()V
-	public fun <init> (Lkotlin/jvm/functions/Function1;Z)V
-	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lkotlin/jvm/functions/Function1;ZLcom/dropbox/differ/ImageComparator;)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;ZLcom/dropbox/differ/ImageComparator;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun apply (Lorg/junit/runners/model/Statement;Lorg/junit/runner/Description;)Lorg/junit/runners/model/Statement;
 	public final fun assertSnapshot (Landroid/app/Activity;Ljava/lang/String;)V
 	public final fun assertSnapshot (Landroid/graphics/Bitmap;Ljava/lang/String;)V
