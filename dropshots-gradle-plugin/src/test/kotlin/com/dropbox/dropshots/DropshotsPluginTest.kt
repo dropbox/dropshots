@@ -37,6 +37,21 @@ class DropshotsPluginTest {
     assertThat(result.output).contains("pullDebugAndroidTestScreenshots")
   }
 
+  @Test
+  fun `adds res value appropriately`() {
+    val fixtureRoot = File("src/test/projects/prints-res-values")
+
+    val resultWithFlag = gradleRunner
+      .withArguments(":module:printResValues", "-Pdropshots.record", "--stacktrace")
+      .runFixture(fixtureRoot) { build() }
+    assertThat(resultWithFlag.output).contains("R.bool.is_recording_screenshots = true")
+
+    val resultWithoutFlag = gradleRunner
+      .withArguments(":module:printResValues", "--stacktrace")
+      .runFixture(fixtureRoot) { build() }
+    assertThat(resultWithoutFlag.output).contains("R.bool.is_recording_screenshots = false")
+  }
+
   private fun GradleRunner.runFixture(
     projectRoot: File,
     action: GradleRunner.() -> BuildResult,
