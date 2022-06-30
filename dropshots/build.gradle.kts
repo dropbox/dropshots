@@ -1,4 +1,3 @@
-import com.android.build.api.dsl.ManagedVirtualDevice
 import com.vanniktech.maven.publish.AndroidLibrary
 import com.vanniktech.maven.publish.JavadocJar.Dokka
 
@@ -51,4 +50,46 @@ dependencies {
 
 mavenPublishing {
   configure(AndroidLibrary(Dokka("dokkaJavadoc"), false))
+}
+
+project.afterEvaluate {
+  val connectedAndroidTest = tasks.named("connectedDebugAndroidTest")
+  val adbExecutablePath = provider { android.adbExecutable.path }
+  val pullScreenshotsTask = tasks.register("pullScreenshots") {
+    dependsOn(connectedAndroidTest)
+
+    description = "Pull screenshots from the test device."
+    group = "verification"
+    outputs.dir(project.layout.buildDirectory.dir("reports/androidTests/dropshots"))
+    outputs.upToDateWhen { false }
+
+    doLast {
+      val outputDir = outputs.files.getSingleFile()
+      outputDir.mkdirs()
+
+      val adb = adbExecutablePath.get()
+      val dir = "/storage/emulated/0/Download/screenshots/com.dropbox.dropshots.test"
+      val checkResult = project.exec {
+        executable = adb
+        args = listOf("shell", "test", "-d", dir)
+        isIgnoreExitValue = true
+      }
+
+      if (checkResult.exitValue == 0) {
+        project.exec {
+          executable = adb
+          args = listOf("pull", "$dir/.", outputDir.path)
+        }
+
+        project.exec {
+          executable = adb
+          args = listOf("shell", "rm", "-r", dir)
+        }
+      }
+    }
+  }
+
+  connectedAndroidTest.configure {
+    finalizedBy(pullScreenshotsTask)
+  }
 }
