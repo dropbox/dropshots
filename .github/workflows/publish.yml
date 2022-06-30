@@ -41,7 +41,7 @@ jobs:
           api-level: 31
           arch: x86_64
           profile: pixel_5
-          script: ./gradlew connectedCheck :dropshots:pullScreenshots --stacktrace
+          script: ./gradlew connectedCheck :dropshots:pullScreenshots --continue --stacktrace
 
       - name: (Fail-only) Bundle test reports
         if: failure()
