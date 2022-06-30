@@ -38,9 +38,9 @@ jobs:
       - name: Run instrumentation tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 31
+          api-level: 32
           arch: x86_64
-          profile: pixel_2
+          profile: pixel_5
           script: ./gradlew connectedCheck --stacktrace
 
       - name: (Fail-only) Bundle test reports
