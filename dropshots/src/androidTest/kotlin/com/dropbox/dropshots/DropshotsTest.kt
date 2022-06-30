@@ -76,7 +76,7 @@ class DropshotsTest {
     }
   }
 
-  @Test
+  @Test(expected = AssertionError::class)
   fun writesOutputImageOnFailure() {
     activityScenarioRule.scenario.onActivity {
       try {
@@ -90,6 +90,7 @@ class DropshotsTest {
         val path = e.message!!.lines()[1].removePrefix("Output written to: ")
         val outputFile = File(path)
         assertTrue("File expected to exist at: $path", outputFile.exists())
+        throw e
       }
     }
   }
