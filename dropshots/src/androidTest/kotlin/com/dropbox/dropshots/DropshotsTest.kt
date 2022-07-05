@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.test.ext.junit.rules.ActivityScenarioRule
+import com.dropbox.differ.SimpleImageComparator
 import java.io.File
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
@@ -19,7 +20,14 @@ class DropshotsTest {
   val activityScenarioRule = ActivityScenarioRule(TestActivity::class.java)
 
   @get:Rule
-  val dropshots = Dropshots(recordScreenshots = false)
+  val dropshots = Dropshots(
+    recordScreenshots = false,
+    imageComparator = SimpleImageComparator(
+      maxDistance = 0.004f,
+      hShift = 1,
+      vShift = 1,
+    )
+  )
 
   @Before
   fun setup() {
@@ -76,7 +84,7 @@ class DropshotsTest {
     }
   }
 
-  @Test
+  @Test(expected = AssertionError::class)
   fun writesOutputImageOnFailure() {
     activityScenarioRule.scenario.onActivity {
       try {
@@ -90,6 +98,7 @@ class DropshotsTest {
         val path = e.message!!.lines()[1].removePrefix("Output written to: ")
         val outputFile = File(path)
         assertTrue("File expected to exist at: $path", outputFile.exists())
+        throw e
       }
     }
   }
