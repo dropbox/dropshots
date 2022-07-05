@@ -1,5 +1,6 @@
 import com.vanniktech.maven.publish.AndroidLibrary
 import com.vanniktech.maven.publish.JavadocJar.Dokka
+import java.io.ByteArrayOutputStream
 
 plugins {
   alias(libs.plugins.android.library)
@@ -52,10 +53,10 @@ mavenPublishing {
   configure(AndroidLibrary(Dokka("dokkaJavadoc"), false))
 }
 
-project.afterEvaluate {
-  val connectedAndroidTest = tasks.named("connectedDebugAndroidTest")
-  val adbExecutablePath = provider { android.adbExecutable.path }
-  val pullScreenshotsTask = tasks.register("pullScreenshots") {
+val adbExecutablePath = provider { android.adbExecutable.path }
+android.testVariants.all {
+  val connectedAndroidTest = connectedInstrumentTestProvider
+  val pullScreenshotsTask = tasks.register("pull${name.capitalize()}Screenshots") {
     dependsOn(connectedAndroidTest)
 
     description = "Pull screenshots from the test device."
@@ -76,9 +77,20 @@ project.afterEvaluate {
       }
 
       if (checkResult.exitValue == 0) {
+        val output = ByteArrayOutputStream()
         project.exec {
           executable = adb
           args = listOf("pull", "$dir/.", outputDir.path)
+          standardOutput = output
+        }
+
+        val fileCount = """^$dir/?\./: ([0-9]*) files pulled,.*$""".toRegex()
+        val matchResult = fileCount.find(output.toString(Charsets.UTF_8))
+        if (matchResult != null && matchResult.groups.size > 1) {
+          println("${matchResult.groupValues[1]} screenshots saved at ${outputDir.path}")
+        } else {
+          println("Unknown result executing adb: $adb pull $dir/. ${outputDir.path}")
+          print(output.toString(Charsets.UTF_8))
         }
 
         project.exec {
@@ -89,7 +101,5 @@ project.afterEvaluate {
     }
   }
 
-  connectedAndroidTest.configure {
-    finalizedBy(pullScreenshotsTask)
-  }
+  connectedAndroidTest.configure { finalizedBy(pullScreenshotsTask) }
 }

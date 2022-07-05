@@ -1,9 +1,7 @@
 package com.dropbox.dropshots
 
 import com.android.build.gradle.AppExtension
-import com.android.build.gradle.AppPlugin
 import com.android.build.gradle.LibraryExtension
-import com.android.build.gradle.LibraryPlugin
 import com.android.build.gradle.TestedExtension
 import com.android.build.gradle.api.ApkVariant
 import com.android.build.gradle.internal.tasks.AndroidTestTask

@@ -1,5 +1,6 @@
 package com.dropbox.dropshots
 
+import java.io.ByteArrayOutputStream
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
@@ -38,9 +39,20 @@ public abstract class PullScreenshotsTask : DefaultTask() {
     }
 
     if (checkResult.exitValue == 0) {
+      val output = ByteArrayOutputStream()
       project.exec {
         it.executable = adb
         it.args = listOf("pull", "$dir/.", outputDir.path)
+        it.standardOutput = output
+      }
+
+      val fileCount = """^$dir/?\./: ([0-9]*) files pulled,.*$""".toRegex()
+      val matchResult = fileCount.find(output.toString(Charsets.UTF_8))
+      if (matchResult != null && matchResult.groups.size > 1) {
+        println("${matchResult.groupValues[1]} screenshots saved at ${outputDir.path}")
+      } else {
+        println("Unknown result executing adb: $adb pull $dir/. ${outputDir.path}")
+        print(output.toString(Charsets.UTF_8))
       }
     }
   }
