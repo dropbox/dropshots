@@ -35,6 +35,9 @@ jobs:
       - name: Run Tests
         run: ./gradlew clean check --no-daemon --stacktrace
 
+      - name: Print tasks
+        run: ./gradlew -m connectedCheck --stacktrace
+
       - name: Run instrumentation tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
