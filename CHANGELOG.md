@@ -1,5 +1,15 @@
 # Change Log
 
+## Version 0.3.0
+
+_2022-07-05_
+
+* Replaces `capitalized` call with backwards compatible variant. (#20)
+* Updates behavior to fast fail if reference and source image don't match in size. (#17)
+* Makes image comparator customizable. (#16)
+* Fixes permission issue on API <= 28. (#15)
+* Use `withPlugin` api for more efficient setup. (#11)
+
 ## Version 0.2.0
 
 _2022-06-10_
