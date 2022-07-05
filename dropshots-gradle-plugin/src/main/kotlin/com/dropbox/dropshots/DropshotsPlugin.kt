@@ -5,9 +5,9 @@ import com.android.build.gradle.LibraryExtension
 import com.android.build.gradle.TestedExtension
 import com.android.build.gradle.api.ApkVariant
 import com.android.build.gradle.internal.tasks.AndroidTestTask
+import java.util.Locale
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.configurationcache.extensions.capitalized
 
 private const val recordScreenshotsArg = "dropshots.record"
 
@@ -65,7 +65,7 @@ public class DropshotsPlugin : Plugin<Project> {
       }
 
       val clearScreenshotsTask = tasks.register(
-        "clear${variant.name.capitalized()}Screenshots",
+        "clear${variant.name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }}Screenshots",
         ClearScreenshotsTask::class.java,
       ) {
         it.adbExecutable.set(adbExecutablePath)
@@ -73,7 +73,7 @@ public class DropshotsPlugin : Plugin<Project> {
       }
 
       val pullScreenshotsTask = tasks.register(
-        "pull${variant.name.capitalized()}Screenshots",
+        "pull${variant.name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }}Screenshots",
         PullScreenshotsTask::class.java,
       ) {
         it.onlyIf { !isRecordingScreenshots }
@@ -84,7 +84,7 @@ public class DropshotsPlugin : Plugin<Project> {
       }
 
       val updateScreenshotsTask = tasks.register(
-        "update${variant.name.capitalized()}Screenshots",
+        "update${variant.name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }}Screenshots",
         PullScreenshotsTask::class.java,
       ) {
         it.description = "Updates the local reference screenshots"
