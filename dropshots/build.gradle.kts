@@ -57,8 +57,6 @@ val adbExecutablePath = provider { android.adbExecutable.path }
 android.testVariants.all {
   val connectedAndroidTest = connectedInstrumentTestProvider
   val pullScreenshotsTask = tasks.register("pull${name.capitalize()}Screenshots") {
-    dependsOn(connectedAndroidTest)
-
     description = "Pull screenshots from the test device."
     group = "verification"
     outputs.dir(project.layout.buildDirectory.dir("reports/androidTests/dropshots"))
