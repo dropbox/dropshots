@@ -108,7 +108,7 @@ jobs:
           key: ${{ runner.os }}-avd-x86_64-pixel_5-31
 
       - name: Create AVD snapshot
-        if: steps.avd-cache.outputs.cache-hit != 'true
+        if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 31
