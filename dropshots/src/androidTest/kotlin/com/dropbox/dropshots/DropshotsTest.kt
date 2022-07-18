@@ -88,37 +88,32 @@ class DropshotsTest {
   fun writesOutputImageOnFailure() {
     var failed = false
     var internalFailure: Throwable? = null
-    try {
-      activityScenarioRule.scenario.onActivity {
-        try {
-          dropshots.assertSnapshot(
-            view = it.findViewById(android.R.id.content),
-            name = "MatchesViewScreenshotBad"
-          )
-        } catch (e: Throwable) {
-          internalFailure = e
-          throw e
-        }
+    activityScenarioRule.scenario.onActivity {
+      try {
+        dropshots.assertSnapshot(
+          view = it.findViewById(android.R.id.content),
+          name = "MatchesViewScreenshotBad"
+        )
+        failed = true
+      } catch (e: Throwable) {
+        internalFailure = e
       }
-      failed = true
-    } catch (e: Throwable) {
-      assertTrue(
-        "Expected AssertionError, got ${e::class.simpleName}: ${e.message}",
-        e is AssertionError
-      )
-      assertTrue(e.message!!.contains("Output written to: "))
-      val path = e.message!!.lines()[1].removePrefix("Output written to: ")
-      val outputFile = File(path)
-      assertTrue("File expected to exist at: $path", outputFile.exists())
-    }
-
-    if (internalFailure != null && !failed) {
-      fail("Caught failure internally but not externally.")
     }
 
     if (failed) {
       fail("Expected error when screenshots differ.")
     }
+
+    assert(internalFailure != null) { "Didn't catch internal failure." }
+    val caught = internalFailure!!
+    assertTrue(
+      "Expected AssertionError, got ${caught::class.simpleName}: ${caught.message}",
+      caught is AssertionError
+    )
+    assertTrue(caught.message!!.contains("Output written to: "))
+    val path = caught.message!!.lines()[1].removePrefix("Output written to: ")
+    val outputFile = File(path)
+    assertTrue("File expected to exist at: $path", outputFile.exists())
   }
 
   @Test
