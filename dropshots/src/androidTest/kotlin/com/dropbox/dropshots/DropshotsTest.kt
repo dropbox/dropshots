@@ -87,14 +87,20 @@ class DropshotsTest {
   @Test
   fun writesOutputImageOnFailure() {
     var failed = false
+    var internalFailure: Throwable? = null
     try {
       activityScenarioRule.scenario.onActivity {
-        dropshots.assertSnapshot(
-          view = it.findViewById(android.R.id.content),
-          name = "MatchesViewScreenshotBad"
-        )
-        failed = true
+        try {
+          dropshots.assertSnapshot(
+            view = it.findViewById(android.R.id.content),
+            name = "MatchesViewScreenshotBad"
+          )
+        } catch (e: Throwable) {
+          internalFailure = e
+          throw e
+        }
       }
+      failed = true
     } catch (e: Throwable) {
       assertTrue(
         "Expected AssertionError, got ${e::class.simpleName}: ${e.message}",
@@ -104,6 +110,10 @@ class DropshotsTest {
       val path = e.message!!.lines()[1].removePrefix("Output written to: ")
       val outputFile = File(path)
       assertTrue("File expected to exist at: $path", outputFile.exists())
+    }
+
+    if (internalFailure != null) {
+      fail("Caught failure internally but not externally.")
     }
 
     if (failed) {
