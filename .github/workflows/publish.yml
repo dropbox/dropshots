@@ -121,6 +121,7 @@ jobs:
           script: echo "Generated AVD snapshot."
 
       - name: Run instrumentation tests
+        id: instrumentation-tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 31
@@ -130,11 +131,23 @@ jobs:
           force-avd-creation: false
           ram-size: 4096M
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot-save
-          script: ./gradlew connectedCheck --stacktrace
+          script: |
+            adb logcat -c
+            touch emulator.log
+            chmod 777 emulator.log
+            adb logcat >> emulator.log &
+            ./gradlew connectedCheck --stacktrace
+
+      - name: (Fail-only) Upload device logs
+        if: steps.instrumentation-tests.outcome != 'success'
+        uses: actions/upload-artifact@v2
+        with:
+          name: device-logs
+          path: emulator.log
 
       - name: (Fail-only) Bundle test reports
         if: failure()
-        run: find . -type d -name 'reports' | zip -@ -r instrumentation-test-build-reports.zip
+        run: find . -type d '(' -name 'reports' -o -name 'outputs' ')' | zip -@ -r instrumentation-test-build-reports.zip
 
       - name: (Fail-only) Upload the build report
         if: failure()
