@@ -112,7 +112,7 @@ class DropshotsTest {
       assertTrue("File expected to exist at: $path", outputFile.exists())
     }
 
-    if (internalFailure != null) {
+    if (internalFailure != null && !failed) {
       fail("Caught failure internally but not externally.")
     }
 
