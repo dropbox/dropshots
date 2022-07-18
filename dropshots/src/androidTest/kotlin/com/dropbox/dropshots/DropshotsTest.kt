@@ -86,19 +86,28 @@ class DropshotsTest {
 
   @Test
   fun writesOutputImageOnFailure() {
+    var failed = false
     try {
       activityScenarioRule.scenario.onActivity {
-          dropshots.assertSnapshot(
-            view = it.findViewById(android.R.id.content),
-            name = "MatchesViewScreenshotBad"
-          )
-          fail("Expected error when screenshots differ.")
+        dropshots.assertSnapshot(
+          view = it.findViewById(android.R.id.content),
+          name = "MatchesViewScreenshotBad"
+        )
+        failed = true
       }
-    } catch (e: AssertionError) {
+    } catch (e: Throwable) {
+      assertTrue(
+        "Expected AssertionError, got ${e::class.simpleName}: ${e.message}",
+        e is AssertionError
+      )
       assertTrue(e.message!!.contains("Output written to: "))
       val path = e.message!!.lines()[1].removePrefix("Output written to: ")
       val outputFile = File(path)
       assertTrue("File expected to exist at: $path", outputFile.exists())
+    }
+
+    if (failed) {
+      fail("Expected error when screenshots differ.")
     }
   }
 
