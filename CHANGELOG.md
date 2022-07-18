@@ -2,7 +2,7 @@
 
 ## Version 0.3.0
 
-_2022-07-05_
+_2022-07-18_
 
 * Replaces `capitalized` call with backwards compatible variant. (#20)
 * Updates behavior to fast fail if reference and source image don't match in size. (#17)
