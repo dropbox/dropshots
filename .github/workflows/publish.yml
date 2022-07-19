@@ -139,7 +139,7 @@ jobs:
             ./gradlew connectedCheck --stacktrace
 
       - name: (Fail-only) Upload device logs
-        if: steps.instrumentation-tests.outcome != 'success'
+        if: failure()
         uses: actions/upload-artifact@v2
         with:
           name: device-logs
