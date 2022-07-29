@@ -76,15 +76,20 @@ class DropshotsTest {
     var failed = false
     activityScenarioRule.scenario.onActivity {
       try {
+        Log.d("!!! TEST !!!", "Asserting snapshot...")
         dropshots.assertSnapshot(
           view = it.findViewById(android.R.id.content),
           name = "MatchesViewScreenshotBad"
         )
+        Log.d("!!! TEST !!!", "Snapshot asserted")
         failed = true
       } catch (e: AssertionError) {
+        Log.d("!!! TEST !!!", "Snapshot assertion failed as expected.")
         // pass
       }
     }
+
+    Log.d("!!! TEST !!!", "Validating thrown error")
     if (failed) {
       fail("Expected error when screenshots differ.")
     }
