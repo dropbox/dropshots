@@ -72,15 +72,20 @@ class DropshotsTest {
 
   @Test
   fun testFailsForDifferences() {
+    var failed = false
     activityScenarioRule.scenario.onActivity {
       try {
         dropshots.assertSnapshot(
-          it.findViewById<View>(android.R.id.content),
-          name = "MatchesViewScreenshotBad")
-        fail("Expected error when screenshots differ.")
+          view = it.findViewById(android.R.id.content),
+          name = "MatchesViewScreenshotBad"
+        )
+        failed = true
       } catch (e: AssertionError) {
         // pass
       }
+    }
+    if (failed) {
+      fail("Expected error when screenshots differ.")
     }
   }
 
