@@ -2,6 +2,7 @@ package com.dropbox.dropshots
 
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -95,12 +96,15 @@ class DropshotsTest {
     var internalFailure: Throwable? = null
     activityScenarioRule.scenario.onActivity {
       try {
+        Log.d("!!! TEST !!!", "Asserting snapshot...")
         dropshots.assertSnapshot(
           view = it.findViewById(android.R.id.content),
           name = "MatchesViewScreenshotBad"
         )
+        Log.d("!!! TEST !!!", "Snapshot asserted")
         failed = true
       } catch (e: Throwable) {
+        Log.d("!!! TEST !!!", "Snapshot assertion failed as expected.")
         internalFailure = e
       }
     }
@@ -109,6 +113,7 @@ class DropshotsTest {
       fail("Expected error when screenshots differ.")
     }
 
+    Log.d("!!! TEST !!!", "Validating thrown error")
     assert(internalFailure != null) { "Didn't catch internal failure." }
     val caught = internalFailure!!
     assertTrue(
