@@ -2,6 +2,7 @@ package com.dropbox.dropshots
 
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -72,43 +73,62 @@ class DropshotsTest {
 
   @Test
   fun testFailsForDifferences() {
+    var failed = false
     activityScenarioRule.scenario.onActivity {
       try {
+        Log.d("!!! TEST !!!", "Asserting snapshot...")
         dropshots.assertSnapshot(
-          it.findViewById<View>(android.R.id.content),
-          name = "MatchesViewScreenshotBad")
-        fail("Expected error when screenshots differ.")
+          view = it.findViewById(android.R.id.content),
+          name = "MatchesViewScreenshotBad"
+        )
+        Log.d("!!! TEST !!!", "Snapshot asserted")
+        failed = true
       } catch (e: AssertionError) {
+        Log.d("!!! TEST !!!", "Snapshot assertion failed as expected.")
         // pass
       }
+    }
+
+    Log.d("!!! TEST !!!", "Validating thrown error")
+    if (failed) {
+      fail("Expected error when screenshots differ.")
     }
   }
 
   @Test
   fun writesOutputImageOnFailure() {
     var failed = false
-    try {
-      activityScenarioRule.scenario.onActivity {
+    var internalFailure: Throwable? = null
+    activityScenarioRule.scenario.onActivity {
+      try {
+        Log.d("!!! TEST !!!", "Asserting snapshot...")
         dropshots.assertSnapshot(
           view = it.findViewById(android.R.id.content),
           name = "MatchesViewScreenshotBad"
         )
+        Log.d("!!! TEST !!!", "Snapshot asserted")
         failed = true
+      } catch (e: Throwable) {
+        Log.d("!!! TEST !!!", "Snapshot assertion failed as expected.")
+        internalFailure = e
       }
-    } catch (e: Throwable) {
-      assertTrue(
-        "Expected AssertionError, got ${e::class.simpleName}: ${e.message}",
-        e is AssertionError
-      )
-      assertTrue(e.message!!.contains("Output written to: "))
-      val path = e.message!!.lines()[1].removePrefix("Output written to: ")
-      val outputFile = File(path)
-      assertTrue("File expected to exist at: $path", outputFile.exists())
     }
 
     if (failed) {
       fail("Expected error when screenshots differ.")
     }
+
+    Log.d("!!! TEST !!!", "Validating thrown error")
+    assert(internalFailure != null) { "Didn't catch internal failure." }
+    val caught = internalFailure!!
+    assertTrue(
+      "Expected AssertionError, got ${caught::class.simpleName}: ${caught.message}",
+      caught is AssertionError
+    )
+    assertTrue(caught.message!!.contains("Output written to: "))
+    val path = caught.message!!.lines()[1].removePrefix("Output written to: ")
+    val outputFile = File(path)
+    assertTrue("File expected to exist at: $path", outputFile.exists())
   }
 
   @Test
