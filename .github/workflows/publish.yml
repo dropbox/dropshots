@@ -147,7 +147,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     if: github.repository == 'dropbox/dropshots' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    needs: [unitTests, instrumentationTests]
+    needs: [unitTests]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
