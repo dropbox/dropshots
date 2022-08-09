@@ -35,7 +35,7 @@ public class Dropshots(
   /**
    * The `ImageComparator` used to compare test and reference screenshots.
    */
-  private val imageComparator: ImageComparator = SimpleImageComparator(maxDistance = 0.004f)
+  private val imageComparator: ImageComparator = SimpleImageComparator(maxDistance = 0.004f),
 
   /**
   * Indicates the number of pixels that can be different before Dropshots treats the comparison as a failure
