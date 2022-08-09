@@ -36,6 +36,11 @@ public class Dropshots(
    * The `ImageComparator` used to compare test and reference screenshots.
    */
   private val imageComparator: ImageComparator = SimpleImageComparator(maxDistance = 0.004f)
+
+  /**
+  * Indicates the number of pixels that can be different before Dropshots treats the comparison as a failure
+  */
+  private val threshold: Int
 ) : TestRule {
   private val context = InstrumentationRegistry.getInstrumentation().context
   private val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
@@ -138,7 +143,7 @@ public class Dropshots(
     }
 
     // Assert
-    if (result.pixelDifferences != 0) {
+    if (result.pixelDifferences > threshold) {
       writeThen(filename, reference, bitmap, mask) {
         AssertionError(
           "\"$name\" failed to match reference image. ${result.pixelDifferences} pixels differ " +
