@@ -1,10 +1,12 @@
 package com.dropbox.dropshots
 
+import javax.inject.Inject
 import org.gradle.api.DefaultTask
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
+import org.gradle.process.ExecOperations
 
 public abstract class ClearScreenshotsTask : DefaultTask() {
 
