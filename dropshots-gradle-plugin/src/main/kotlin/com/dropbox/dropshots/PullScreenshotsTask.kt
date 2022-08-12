@@ -1,5 +1,6 @@
 package com.dropbox.dropshots
 
+import javax.inject.Inject
 import java.io.ByteArrayOutputStream
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
@@ -7,6 +8,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import org.gradle.process.ExecOperations
 
 public abstract class PullScreenshotsTask : DefaultTask() {
 
@@ -18,6 +20,9 @@ public abstract class PullScreenshotsTask : DefaultTask() {
 
   @get:OutputDirectory
   public abstract val outputDirectory: DirectoryProperty
+
+  @get:Inject
+  protected abstract val execOperations: ExecOperations
 
   init {
     description = "Pull screenshots from the test device."
@@ -32,7 +37,7 @@ public abstract class PullScreenshotsTask : DefaultTask() {
 
     val adb = adbExecutable.get()
     val dir = screenshotDir.get()
-    val checkResult = project.exec {
+    val checkResult = execOperations.exec {
       it.executable = adb
       it.args = listOf("shell", "test", "-d", dir)
       it.isIgnoreExitValue = true
@@ -40,7 +45,7 @@ public abstract class PullScreenshotsTask : DefaultTask() {
 
     if (checkResult.exitValue == 0) {
       val output = ByteArrayOutputStream()
-      project.exec {
+      execOperations.exec {
         it.executable = adb
         it.args = listOf("pull", "$dir/.", outputDir.path)
         it.standardOutput = output
