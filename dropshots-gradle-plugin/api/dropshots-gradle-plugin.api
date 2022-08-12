@@ -2,6 +2,7 @@ public abstract class com/dropbox/dropshots/ClearScreenshotsTask : org/gradle/ap
 	public fun <init> ()V
 	public final fun clearScreenshots ()V
 	public abstract fun getAdbExecutable ()Lorg/gradle/api/provider/Property;
+	protected abstract fun getExecOperations ()Lorg/gradle/process/ExecOperations;
 	public abstract fun getScreenshotDir ()Lorg/gradle/api/provider/Property;
 }
 
@@ -14,6 +15,7 @@ public final class com/dropbox/dropshots/DropshotsPlugin : org/gradle/api/Plugin
 public abstract class com/dropbox/dropshots/PullScreenshotsTask : org/gradle/api/DefaultTask {
 	public fun <init> ()V
 	public abstract fun getAdbExecutable ()Lorg/gradle/api/provider/Property;
+	protected abstract fun getExecOperations ()Lorg/gradle/process/ExecOperations;
 	public abstract fun getOutputDirectory ()Lorg/gradle/api/file/DirectoryProperty;
 	public abstract fun getScreenshotDir ()Lorg/gradle/api/provider/Property;
 	public final fun pullScreenshots ()V
