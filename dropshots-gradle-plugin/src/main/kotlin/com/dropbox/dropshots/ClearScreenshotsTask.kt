@@ -16,8 +16,8 @@ public abstract class ClearScreenshotsTask : DefaultTask() {
   @get:Destroys
   public abstract val screenshotDir: Property<String>
 
-  @Inject
-  protected abstract fun getExecOperations(): ExecOperations
+  @get:Inject
+  protected abstract val execOperations: ExecOperations
 
   init {
     description = "Removes the test screenshots from the test device."
@@ -28,14 +28,14 @@ public abstract class ClearScreenshotsTask : DefaultTask() {
   public fun clearScreenshots() {
     val adb = adbExecutable.get()
     val dir = screenshotDir.get()
-    val checkResult = getExecOperations().exec {
+    val checkResult = execOperations.exec {
       it.executable = adb
       it.args = listOf("shell", "test", "-d", dir)
       it.isIgnoreExitValue = true
     }
 
     if (checkResult.exitValue == 0) {
-      getExecOperations().exec {
+      execOperations.exec {
         it.executable = adb
         it.args = listOf("shell", "rm", "-r", dir)
       }

@@ -21,8 +21,8 @@ public abstract class PullScreenshotsTask : DefaultTask() {
   @get:OutputDirectory
   public abstract val outputDirectory: DirectoryProperty
 
-  @Inject
-  protected abstract fun getExecOperations(): ExecOperations
+  @get:Inject
+  protected abstract val execOperations: ExecOperations
 
   init {
     description = "Pull screenshots from the test device."
@@ -37,7 +37,7 @@ public abstract class PullScreenshotsTask : DefaultTask() {
 
     val adb = adbExecutable.get()
     val dir = screenshotDir.get()
-    val checkResult = getExecOperations().exec {
+    val checkResult = execOperations.exec {
       it.executable = adb
       it.args = listOf("shell", "test", "-d", dir)
       it.isIgnoreExitValue = true
@@ -45,7 +45,7 @@ public abstract class PullScreenshotsTask : DefaultTask() {
 
     if (checkResult.exitValue == 0) {
       val output = ByteArrayOutputStream()
-      getExecOperations().exec {
+      execOperations.exec {
         it.executable = adb
         it.args = listOf("pull", "$dir/.", outputDir.path)
         it.standardOutput = output
