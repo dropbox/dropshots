@@ -9,7 +9,6 @@ import android.widget.LinearLayout
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import com.dropbox.differ.SimpleImageComparator
 import java.io.File
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
