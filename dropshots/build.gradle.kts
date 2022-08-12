@@ -42,6 +42,10 @@ dependencies {
 
   debugImplementation(libs.androidx.fragment)
 
+  testImplementation(platform(libs.kotlin.bom))
+  testImplementation(libs.junit)
+  testImplementation(libs.kotlin.test)
+
   androidTestImplementation(libs.junit)
   androidTestImplementation(libs.androidx.test.core)
   androidTestImplementation(libs.androidx.test.ext.junit)
