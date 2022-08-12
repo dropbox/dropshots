@@ -139,6 +139,16 @@ updated in the `src/androidTest/screenshots` directory. After that, running conn
 either from the `gradlew` CLI or directly from the IDE, will validate the screenshots against the
 new reference images.
 
+### Custom Validation
+
+By default Dropshots will fail assertions if the supplied ImageComparator returns any pixels that
+don't match the reference image. If that is too strict for your use case, then you can supply a
+custom `ResultValidator` to specify how comparison results should be validated.
+
+The included `CountValidator` validates comparison results which contain no more than the specified
+number of pixel differences. The included `ThresholdValidator` validates comparison results which
+contain no more then the specific percentage of pixel differences, based on the entire image size.
+
 ## License
 
     Copyright (c) 2022 Dropbox, Inc.

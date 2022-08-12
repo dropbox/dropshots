@@ -9,6 +9,8 @@ import android.widget.LinearLayout
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import com.dropbox.differ.SimpleImageComparator
 import java.io.File
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
@@ -17,12 +19,15 @@ import org.junit.Test
 
 class DropshotsTest {
 
+  private val fakeValidator = FakeResultValidator()
+
   @get:Rule
   val activityScenarioRule = ActivityScenarioRule(TestActivity::class.java)
 
   @get:Rule
   val dropshots = Dropshots(
     recordScreenshots = false,
+    resultValidator = fakeValidator,
     imageComparator = SimpleImageComparator(
       maxDistance = 0.004f,
       hShift = 1,
@@ -32,6 +37,7 @@ class DropshotsTest {
 
   @Before
   fun setup() {
+    fakeValidator.validator = CountValidator(0)
     activityScenarioRule.scenario.onActivity { activity ->
       activity.setContentView(
         LinearLayout(activity).apply {
@@ -96,39 +102,33 @@ class DropshotsTest {
   }
 
   @Test
-  fun writesOutputImageOnFailure() {
-    var failed = false
-    var internalFailure: Throwable? = null
+  fun testPassesWhenValidatorPasses() {
+    fakeValidator.validator = { true }
+    activityScenarioRule.scenario.onActivity {
+      dropshots.assertSnapshot(
+        view = it.findViewById(android.R.id.content),
+        name = "MatchesViewScreenshotBad"
+      )
+    }
+  }
+
+  @Test
+  fun testFailsWhenValidatorFails() {
+    fakeValidator.validator = { false }
+
+    var caughtError: AssertionError? = null
     activityScenarioRule.scenario.onActivity {
       try {
-        Log.d("!!! TEST !!!", "Asserting snapshot...")
         dropshots.assertSnapshot(
           view = it.findViewById(android.R.id.content),
           name = "MatchesViewScreenshotBad"
         )
-        Log.d("!!! TEST !!!", "Snapshot asserted")
-        failed = true
-      } catch (e: Throwable) {
-        Log.d("!!! TEST !!!", "Snapshot assertion failed as expected.")
-        internalFailure = e
+      } catch (e: AssertionError) {
+        caughtError = e
       }
     }
 
-    if (failed) {
-      fail("Expected error when screenshots differ.")
-    }
-
-    Log.d("!!! TEST !!!", "Validating thrown error")
-    assert(internalFailure != null) { "Didn't catch internal failure." }
-    val caught = internalFailure!!
-    assertTrue(
-      "Expected AssertionError, got ${caught::class.simpleName}: ${caught.message}",
-      caught is AssertionError
-    )
-    assertTrue(caught.message!!.contains("Output written to: "))
-    val path = caught.message!!.lines()[1].removePrefix("Output written to: ")
-    val outputFile = File(path)
-    assertTrue("File expected to exist at: $path", outputFile.exists())
+    assertNotNull(caughtError)
   }
 
   @Test
