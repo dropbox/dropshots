@@ -1,5 +1,12 @@
 # Change Log
 
+## Version 0.4.0
+
+_2022-10-14__
+
+* Adds support for Gradle configuration cache (#26)
+* Adds `ResultValidator` to customize how screenshots are validated (#27)
+
 ## Version 0.3.0
 
 _2022-08-01_
