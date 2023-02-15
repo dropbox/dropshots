@@ -5,6 +5,8 @@ import com.android.build.gradle.LibraryExtension
 import com.android.build.gradle.TestedExtension
 import com.android.build.gradle.api.ApkVariant
 import com.android.build.gradle.internal.tasks.AndroidTestTask
+import com.dropbox.dropshots.DropshotsExtension.Companion.EXTENSION_NAME
+import java.nio.file.Files
 import java.util.Locale
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -13,6 +15,8 @@ private const val recordScreenshotsArg = "dropshots.record"
 
 public class DropshotsPlugin : Plugin<Project> {
   override fun apply(project: Project) {
+    setupExtension(project)
+
     project.pluginManager.withPlugin("com.android.application") {
       val extension = project.extensions.findByType(AppExtension::class.java)
         ?: throw Exception("Failed to find Android Application extension")
@@ -24,6 +28,10 @@ public class DropshotsPlugin : Plugin<Project> {
         ?: throw Exception("Failed to find Android Library extension")
       project.configureDropshots(extension)
     }
+  }
+
+  private fun setupExtension(project: Project) {
+    project.extensions.create(EXTENSION_NAME, DropshotsExtension::class.java)
   }
 
   private fun Project.configureDropshots(extension: TestedExtension) {
@@ -43,8 +51,13 @@ public class DropshotsPlugin : Plugin<Project> {
     val androidTestSourceSet = extension.sourceSets.findByName("androidTest")
       ?: throw Exception("Failed to find androidTest source set")
 
-    // TODO configure this via extension
-    val referenceScreenshotDirectory = layout.projectDirectory.dir("src/androidTest/screenshots")
+    val referenceScreenshotDirectory = layout.projectDirectory.dir(
+      project.extensions.getByType(DropshotsExtension::class.java).referenceDirectory
+    )
+    val referenceScreenshotDirectoryPath = referenceScreenshotDirectory.asFile.toPath()
+    if (Files.exists(referenceScreenshotDirectoryPath)) {
+      Files.createDirectory(referenceScreenshotDirectoryPath)
+    }
 
     androidTestSourceSet.assets {
       srcDirs(referenceScreenshotDirectory)
