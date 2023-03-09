@@ -56,7 +56,7 @@ public class Dropshots(
     className = fqName.substringAfterLast('.', missingDelimiterValue = "")
     testName = description.methodName
 
-    return if (Build.VERSION.SDK_INT <= 28) {
+    return if (Build.VERSION.SDK_INT <= 29) {
       GrantPermissionRule
         .grant(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
         .apply(base, description)
