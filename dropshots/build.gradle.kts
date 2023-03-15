@@ -1,5 +1,4 @@
-import com.vanniktech.maven.publish.AndroidLibrary
-import com.vanniktech.maven.publish.JavadocJar.Dokka
+import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
 import java.io.ByteArrayOutputStream
 
 plugins {
@@ -54,7 +53,11 @@ dependencies {
 }
 
 mavenPublishing {
-  configure(AndroidLibrary(Dokka("dokkaJavadoc"), false))
+  configure(AndroidSingleVariantLibrary(
+    variant = "release",
+    sourcesJar = true,
+    publishJavadocJar = true,
+  ))
 }
 
 val adbExecutablePath = provider { android.adbExecutable.path }

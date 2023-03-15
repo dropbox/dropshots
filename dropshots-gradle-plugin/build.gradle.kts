@@ -1,6 +1,7 @@
+import com.android.build.gradle.tasks.SourceJarTask
 import com.vanniktech.maven.publish.GradlePlugin
 import com.vanniktech.maven.publish.JavadocJar.Dokka
-import com.vanniktech.maven.publish.tasks.SourcesJar
+import org.gradle.jvm.tasks.Jar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -29,6 +30,10 @@ sourceSets {
   }
 }
 
+tasks.whenTaskAdded {
+  println("Type of ${this.name} is ${this::class.simpleName}")
+}
+
 mavenPublishing {
   configure(GradlePlugin(Dokka("dokkaJavadoc")))
 }
@@ -48,7 +53,7 @@ val generateVersionTask = tasks.register("generateVersion") {
   }
 }
 
-tasks.withType<SourcesJar>().configureEach {
+tasks.withType<Jar>().configureEach {
   dependsOn(generateVersionTask)
 }
 
