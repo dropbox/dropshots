@@ -62,7 +62,7 @@ tasks.named("compileKotlin").configure {
 
 tasks.withType<KotlinCompile>().configureEach {
   kotlinOptions {
-    jvmTarget = "1.8"
+    jvmTarget = "11"
     // Because Gradle's Kotlin handling is stupid, this falls out of date quickly
     apiVersion = "1.5"
     languageVersion = "1.5"
@@ -82,7 +82,7 @@ java {
 }
 
 tasks.withType<JavaCompile>().configureEach {
-  options.release.set(8)
+  options.release.set(11)
 }
 
 kotlin {
