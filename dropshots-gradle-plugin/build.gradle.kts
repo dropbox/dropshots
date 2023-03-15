@@ -30,10 +30,6 @@ sourceSets {
   }
 }
 
-tasks.whenTaskAdded {
-  println("Type of ${this.name} is ${this::class.simpleName}")
-}
-
 mavenPublishing {
   configure(GradlePlugin(Dokka("dokkaJavadoc")))
 }
