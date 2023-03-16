@@ -70,41 +70,48 @@ public class Dropshots(
    *
    * If `BuildConfig.IS_RECORD_SCREENSHOTS` is set to `true`, then the screenshot will simply be written
    * to disk to be pulled to the host machine to update the reference images.
+   *
+   * @param filePath where the screenshots should be store in project eg. "views/colors"
    */
   public fun assertSnapshot(
     view: View,
-    name: String = snapshotName
-  ) = assertSnapshot(Screenshot.capture(view).bitmap, name)
+    name: String = snapshotName,
+    filePath: String? = null,
+  ) = assertSnapshot(Screenshot.capture(view).bitmap, name, filePath)
 
   /**
    * Compares a screenshot of the activity to a references screenshot from the test application's assets.
    *
    * If `BuildConfig.IS_RECORD_SCREENSHOTS` is set to `true`, then the screenshot will simply be written
    * to disk to be pulled to the host machine to update the reference images.
+   *
+   * @param filePath where the screenshots should be store in project eg. "views/colors"
    */
   public fun assertSnapshot(
     activity: Activity,
-    name: String = snapshotName
-  ) = assertSnapshot(Screenshot.capture(activity).bitmap, name)
+    name: String = snapshotName,
+    filePath: String? = null,
+  ) = assertSnapshot(Screenshot.capture(activity).bitmap, name, filePath)
 
   @Suppress("LongMethod")
   public fun assertSnapshot(
     bitmap: Bitmap,
-    name: String
+    name: String,
+    filePath: String? = null,
   ) {
     val filename = filenameFunc(name)
 
     val reference = try {
-      context.assets.open("$filename.png").use {
+      context.assets.open("$filename.png".prependPath(filePath)).use {
         BitmapFactory.decodeStream(it)
       }
     } catch (e: FileNotFoundException) {
       if (recordScreenshots) {
-        writeImage(filename, bitmap)
+        writeImage(filename, filePath, bitmap)
         return
       } else {
         throw IllegalStateException(
-          "Failed to find reference image named $filename.png. " +
+          "Failed to find reference image named /$filename.png at path $filePath . " +
             "If this is a new test, you may need to record screenshots by adding `dropshots.record=true` to your gradle.properties file, or gradlew with `-Pdropshots.record`.",
           e
         )
@@ -113,10 +120,10 @@ public class Dropshots(
 
     if (bitmap.width != reference.width || bitmap.height != reference.height) {
       if (recordScreenshots) {
-        writeImage(filename, bitmap)
+        writeImage(filename, filePath, bitmap)
         return
       } else {
-        writeThen(filename, reference, bitmap, null) { outputPath ->
+        writeThen(filename, filePath, reference, bitmap, null) { outputPath ->
           AssertionError(
             "$name: Test image (w=${bitmap.width}, h=${bitmap.height}) differs in size" +
               " from reference image (w=${reference.width}, h=${reference.height}).\n" +
@@ -130,7 +137,7 @@ public class Dropshots(
     val result = try {
       imageComparator.compare(BitmapImage(reference), BitmapImage(bitmap), mask)
     } catch (e: IllegalArgumentException) {
-      writeThen(filename, reference, bitmap, mask) {
+      writeThen(filename, filePath, reference, bitmap, mask) {
         IllegalArgumentException(
           "Failed to compare images: reference{width=${reference.width}, height=${reference.height}} " +
             "<> bitmap{width=${bitmap.width}, height=${bitmap.height}}\n" +
@@ -143,7 +150,7 @@ public class Dropshots(
 
     // Assert
     if (!resultValidator(result)) {
-      writeThen(filename, reference, bitmap, mask) {
+      writeThen(filename, filePath, reference, bitmap, mask) {
         AssertionError(
           "\"$name\" failed to match reference image. ${result.pixelDifferences} pixels differ " +
             "(${(result.pixelDifferences / result.pixelCount.toFloat()) * 100} %)\n" +
@@ -159,16 +166,17 @@ public class Dropshots(
    */
   private fun writeThen(
     filename: String,
+    filePath: String?,
     referenceImage: Bitmap,
     testImage: Bitmap,
     mask: Mask?,
     message: (outputFilePath: String) -> Throwable
   ) {
     if (recordScreenshots) {
-      writeImage(filename, testImage)
+      writeImage(filename, filePath, testImage)
     } else {
       val diffImage = generateDiffImage(referenceImage, testImage, mask)
-      val outputFilePath = writeImage(filename, diffImage)
+      val outputFilePath = writeImage(filename, filePath, diffImage)
       throw message(outputFilePath)
     }
   }
@@ -176,10 +184,10 @@ public class Dropshots(
   /**
    * Writes the given screenshot to the external storage directory.
    */
-  private fun writeImage(name: String, screenshot: Bitmap): String {
+  private fun writeImage(name: String, filePath: String?, screenshot: Bitmap): String {
     val externalStorageDir = Environment
       .getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-    val screenFolder = File(externalStorageDir, "screenshots/${targetContext.packageName}")
+    val screenFolder = File(externalStorageDir, "screenshots/${targetContext.packageName}".appendPath(filePath))
     if (!screenFolder.exists() && !screenFolder.mkdirs()) {
       throw IllegalStateException("Unable to create screenshot storage directory.")
     }
@@ -269,3 +277,17 @@ internal val defaultFilenameFunc = { testName: String ->
     it.replace(" ", "_")
   }
 }
+
+private fun String.prependPath(path: String?): String =
+  if (path == null) {
+    this
+  } else {
+    "$path/$this"
+  }
+
+private fun String.appendPath(path: String?): String =
+  if (path == null) {
+    this
+  } else {
+    "$this/$path"
+  }
