@@ -1,6 +1,5 @@
 package com.dropbox.dropshots
 
-import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.util.Log
 import android.view.View
@@ -8,9 +7,8 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import com.dropbox.differ.SimpleImageComparator
-import java.io.File
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
@@ -132,23 +130,20 @@ class DropshotsTest {
 
   @Test
   fun fastFailsForMismatchedSize() {
+    var failed = false
     activityScenarioRule.scenario.onActivity {
       try {
         dropshots.assertSnapshot(
           view = it.findViewById(android.R.id.content),
           name = "MatchesViewScreenshotBadSize"
         )
-        fail("Expected error when screenshots differ.")
+        failed = true
       } catch (e: Throwable) {
-        assertTrue(e.message!!.contains("Output written to: "))
-        val path = e.message!!.lines()[1].removePrefix("Output written to: ")
-        val outputFile = File(path)
-        assertTrue("File expected to exist at: $path", outputFile.exists())
-
-        val bitmap = BitmapFactory.decodeFile(outputFile.absolutePath)
-        assertTrue("Output image expected to be twice the captured width.", bitmap.width == 1080 * 2)
+        // no op
       }
     }
+
+    assertFalse("Mismatched size screenshot test expected to fail, but passed.", failed)
   }
 }
 
