@@ -104,7 +104,8 @@ class MyTest {
             // or assert view snapshots.
             dropshots.assertSnapshot(
                 it.findViewById<View>(android.R.id.content),
-                name = "MatchesViewScreenshot"
+                name = "MatchesViewScreenshot",
+                path = "views/fullscreen" // optional parameter to set path of stored screenshots
             )
         }
     }

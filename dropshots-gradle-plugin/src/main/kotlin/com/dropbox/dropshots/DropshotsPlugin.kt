@@ -40,6 +40,7 @@ public class DropshotsPlugin : Plugin<Project> {
       )
     }
 
+    //check this to have resource based on flavours
     val androidTestSourceSet = extension.sourceSets.findByName("androidTest")
       ?: throw Exception("Failed to find androidTest source set")
 
