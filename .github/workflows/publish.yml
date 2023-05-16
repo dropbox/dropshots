@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Gradle Wrapper Validation
         uses: gradle/wrapper-validation-action@v1
@@ -39,7 +39,7 @@ jobs:
     needs: [build]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Gradle Wrapper Validation
         uses: gradle/wrapper-validation-action@v1
@@ -78,7 +78,7 @@ jobs:
     needs: [build]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Gradle Wrapper Validation
         uses: gradle/wrapper-validation-action@v1
@@ -151,7 +151,7 @@ jobs:
     needs: [unitTests]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - uses: actions/cache@v3
         with:
