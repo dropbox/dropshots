@@ -96,7 +96,7 @@ public class Dropshots(
   @Suppress("LongMethod")
   public fun assertSnapshot(
     bitmap: Bitmap,
-    name: String,
+    name: String = snapshotName,
     filePath: String? = null,
   ) {
     val filename = filenameFunc(name)
