@@ -30,7 +30,7 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 dokka = { id = "org.jetbrains.dokka", version = "1.7.20" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-ktlint = { id = "org.jlleitschuh.gradle.ktlint", version = "10.3.0" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version = "11.4.2" }
 mavenPublish = { id = "com.vanniktech.maven.publish.base", version = "0.25.2" }
 binaryCompatibilityValidator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.13.0" }
 
