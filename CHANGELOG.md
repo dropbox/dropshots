@@ -1,8 +1,15 @@
 # Change Log
 
+## Version 0.4.1
+
+_2023-08-07_
+
+* Make name param optional in assertSnapshot's overload for bitmaps (#51)
+* Allows screenshots to be saved into folders.
+
 ## Version 0.4.0
 
-_2022-10-14__
+_2022-10-14_
 
 * Adds support for Gradle configuration cache (#26)
 * Adds `ResultValidator` to customize how screenshots are validated (#27)
