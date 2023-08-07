@@ -1,5 +1,5 @@
 [versions]
-kotlin = "1.7.22"
+kotlin = "1.8.21"
 agp = "7.4.0"
 androidx-core = "1.7.0"
 androidx-test = "1.4.0"
