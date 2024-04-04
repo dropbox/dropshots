@@ -58,6 +58,13 @@ class DropshotsTest {
   }
 
   @Test
+  fun testMatchesFullScreenshot() {
+    activityScenarioRule.scenario.onActivity {
+      dropshots.assertSnapshot("MatchesFullScreenshot")
+    }
+  }
+
+  @Test
   fun testMatchesActivityScreenshot() {
     activityScenarioRule.scenario.onActivity {
       dropshots.assertSnapshot(it, "MatchesActivityScreenshot")

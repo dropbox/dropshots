@@ -66,7 +66,7 @@ public class Dropshots(
   }
 
   /**
-   * Compares a screenshot of the view to a references screenshot from the test application's assets.
+   * Compares a screenshot of the view to a reference screenshot from the test application's assets.
    *
    * If `BuildConfig.IS_RECORD_SCREENSHOTS` is set to `true`, then the screenshot will simply be written
    * to disk to be pulled to the host machine to update the reference images.
@@ -80,7 +80,7 @@ public class Dropshots(
   ) = assertSnapshot(Screenshot.capture(view).bitmap, name, filePath)
 
   /**
-   * Compares a screenshot of the activity to a references screenshot from the test application's assets.
+   * Compares a screenshot of the activity to a reference screenshot from the test application's assets.
    *
    * If `BuildConfig.IS_RECORD_SCREENSHOTS` is set to `true`, then the screenshot will simply be written
    * to disk to be pulled to the host machine to update the reference images.
@@ -92,6 +92,19 @@ public class Dropshots(
     name: String = snapshotName,
     filePath: String? = null,
   ) = assertSnapshot(Screenshot.capture(activity).bitmap, name, filePath)
+
+  /**
+   * Compares a screenshot of the visible screen content to a reference screenshot from the test application's assets.
+   *
+   * If `BuildConfig.IS_RECORD_SCREENSHOTS` is set to `true`, then the screenshot will simply be written
+   * to disk to be pulled to the host machine to update the reference images.
+   *
+   * @param filePath where the screenshots should be store in project eg. "views/colors"
+   */
+  public fun assertSnapshot(
+    name: String = snapshotName,
+    filePath: String? = null,
+  ) = assertSnapshot(Screenshot.capture().bitmap, name, filePath)
 
   @Suppress("LongMethod")
   public fun assertSnapshot(
