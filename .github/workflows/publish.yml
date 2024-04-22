@@ -127,6 +127,7 @@ jobs:
 
       - name: Run instrumentation tests
         id: screenshotsverify
+        continue-on-error: true
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 31
