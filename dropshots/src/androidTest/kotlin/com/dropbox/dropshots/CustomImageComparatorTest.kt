@@ -11,6 +11,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class CustomImageComparatorTest {
+  private val isRecordingScreenshots = isRecordingScreenshots()
 
   @get:Rule
   val activityScenarioRule = ActivityScenarioRule(TestActivity::class.java)
@@ -31,6 +32,9 @@ class CustomImageComparatorTest {
 
   @Test
   fun imageComparatorIsConfigurable() {
+    // This doesn't do anything if we're recording.
+    if (isRecordingScreenshots) return
+
     val calls = mutableListOf<Triple<Image, Image, Mask?>>()
     comparator.compareFunc = { left, right, mask ->
       calls.add(Triple(left, right, mask))

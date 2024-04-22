@@ -28,7 +28,6 @@ android {
   }
 
   val isRecordingScreenshots = hasProperty("dropshots.record")
-
   buildTypes.getByName("debug") {
     resValue("bool", "is_recording_screenshots", isRecordingScreenshots.toString())
   }

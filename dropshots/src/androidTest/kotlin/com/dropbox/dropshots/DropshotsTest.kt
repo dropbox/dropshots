@@ -11,12 +11,14 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.fail
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
 class DropshotsTest {
 
   private val fakeValidator = FakeResultValidator()
+  private val isRecordingScreenshots = isRecordingScreenshots()
 
   @get:Rule
   val activityScenarioRule = ActivityScenarioRule(TestActivity::class.java)
@@ -82,13 +84,17 @@ class DropshotsTest {
 
   @Test
   fun testFailsForDifferences() {
+    // This doesn't do anything if we're recording.
+    if (isRecordingScreenshots) return
+
     var failed = false
     activityScenarioRule.scenario.onActivity {
       try {
         Log.d("!!! TEST !!!", "Asserting snapshot...")
         dropshots.assertSnapshot(
           view = it.findViewById(android.R.id.content),
-          name = "MatchesViewScreenshotBad"
+          name = "MatchesViewScreenshotBad",
+          filePath = "static"
         )
         Log.d("!!! TEST !!!", "Snapshot asserted")
         failed = true
@@ -110,7 +116,8 @@ class DropshotsTest {
     activityScenarioRule.scenario.onActivity {
       dropshots.assertSnapshot(
         view = it.findViewById(android.R.id.content),
-        name = "MatchesViewScreenshotBad"
+        name = "MatchesViewScreenshotBad",
+        filePath = "static"
       )
     }
   }
@@ -124,7 +131,8 @@ class DropshotsTest {
       try {
         dropshots.assertSnapshot(
           view = it.findViewById(android.R.id.content),
-          name = "MatchesViewScreenshotBad"
+          name = "MatchesViewScreenshotBad",
+          filePath = "static"
         )
       } catch (e: AssertionError) {
         caughtError = e
@@ -136,12 +144,16 @@ class DropshotsTest {
 
   @Test
   fun fastFailsForMismatchedSize() {
+    // This doesn't do anything if we're recording.
+    if (isRecordingScreenshots) return
+
     var failed = false
     activityScenarioRule.scenario.onActivity {
       try {
         dropshots.assertSnapshot(
           view = it.findViewById(android.R.id.content),
-          name = "MatchesViewScreenshotBadSize"
+          name = "MatchesViewScreenshotBadSize",
+          filePath = "static"
         )
         failed = true
       } catch (e: Throwable) {
