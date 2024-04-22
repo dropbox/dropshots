@@ -23,7 +23,6 @@ class DropshotsTest {
 
   @get:Rule
   val dropshots = Dropshots(
-    recordScreenshots = false,
     resultValidator = fakeValidator,
     imageComparator = SimpleImageComparator(
       maxDistance = 0.004f,
