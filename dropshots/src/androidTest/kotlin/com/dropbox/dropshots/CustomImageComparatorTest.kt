@@ -6,6 +6,7 @@ import com.dropbox.differ.Image
 import com.dropbox.differ.ImageComparator
 import com.dropbox.differ.ImageComparator.ComparisonResult
 import com.dropbox.differ.Mask
+import org.junit.Assume.assumeFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -32,8 +33,7 @@ class CustomImageComparatorTest {
 
   @Test
   fun imageComparatorIsConfigurable() {
-    // This doesn't do anything if we're recording.
-    if (isRecordingScreenshots) return
+    assumeFalse(isRecordingScreenshots)
 
     val calls = mutableListOf<Triple<Image, Image, Mask?>>()
     comparator.compareFunc = { left, right, mask ->

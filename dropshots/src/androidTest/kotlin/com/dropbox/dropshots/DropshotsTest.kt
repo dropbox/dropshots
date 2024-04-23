@@ -7,11 +7,9 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import com.dropbox.differ.SimpleImageComparator
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.fail
+import org.junit.Assert.*
+import org.junit.Assume.assumeFalse
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -84,8 +82,7 @@ class DropshotsTest {
 
   @Test
   fun testFailsForDifferences() {
-    // This doesn't do anything if we're recording.
-    if (isRecordingScreenshots) return
+    assumeFalse(isRecordingScreenshots)
 
     var failed = false
     activityScenarioRule.scenario.onActivity {
@@ -112,6 +109,8 @@ class DropshotsTest {
 
   @Test
   fun testPassesWhenValidatorPasses() {
+    assumeFalse(isRecordingScreenshots)
+
     fakeValidator.validator = { true }
     activityScenarioRule.scenario.onActivity {
       dropshots.assertSnapshot(
@@ -124,6 +123,8 @@ class DropshotsTest {
 
   @Test
   fun testFailsWhenValidatorFails() {
+    assumeFalse(isRecordingScreenshots)
+
     fakeValidator.validator = { false }
 
     var caughtError: AssertionError? = null
@@ -144,8 +145,7 @@ class DropshotsTest {
 
   @Test
   fun fastFailsForMismatchedSize() {
-    // This doesn't do anything if we're recording.
-    if (isRecordingScreenshots) return
+    assumeFalse(isRecordingScreenshots)
 
     var failed = false
     activityScenarioRule.scenario.onActivity {
