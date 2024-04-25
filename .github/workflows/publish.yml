@@ -74,7 +74,8 @@ jobs:
           path: unit-test-build-reports.zip
 
   instrumentationTests:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
     needs: [build]
 
     permissions:
@@ -82,6 +83,23 @@ jobs:
       pull-requests: write
 
     steps:
+      - name: Delete unnecessary tools 🔧
+        run: |
+          echo Remote tool cache
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY" || true
+
+          echo Remove dotnet runtime
+          sudo rm -rf /usr/share/dotnet || true
+
+          echo Remove haskell runtime
+          sudo rm -rf /opt/ghc || true
+          sudo rm -rf /usr/local/.ghcup || true
+
+          echo Remove swap storage
+          sudo swapoff -a || true
+          sudo rm -f /mnt/swapfile || true
+          free -h
+
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -167,7 +185,7 @@ jobs:
         continue-on-error: true
         if: steps.screenshotsrecord.outcome == 'success' && github.event_name == 'pull_request'
         run: |
-          rm dropshots/src/androidTest/assets/*.png || echo No existing files
+          rm dropshots/src/androidTest/assets/*.png || true
           cp dropshots/build/reports/androidTests/dropshots/*.png dropshots/src/androidTest/assets/
 
       - name: Push new screenshots if available
