@@ -148,7 +148,7 @@ jobs:
           disable-animations: false
           ram-size: 4096M
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: echo "Generated AVD snapshot for caching."
+          script: ./.github/scripts/emu_setup.sh && echo "Generated AVD snapshot for caching."
 
       - name: Run instrumentation tests
         id: screenshotsverify
@@ -163,7 +163,7 @@ jobs:
           ram-size: 4096M
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           # Workaround for https://github.com/ReactiveCircus/android-emulator-runner/issues/319
-          script: adb uninstall com.dropbox.dropshots.test; ./gradlew connectedCheck --stacktrace
+          script: adb uninstall com.dropbox.dropshots.test; ./.github/scripts/emu_setup.sh && ./gradlew connectedCheck --stacktrace
 
       - name: Prevent pushing new screenshots if this is a fork
         id: checkfork_screenshots
@@ -185,7 +185,7 @@ jobs:
           ram-size: 4096M
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           # Workaround for https://github.com/ReactiveCircus/android-emulator-runner/issues/319
-          script: adb uninstall com.dropbox.dropshots.test; ./gradlew connectedCheck -Pdropshots.record --stacktrace
+          script: adb uninstall com.dropbox.dropshots.test; ./.github/scripts/emu_setup.sh && ./gradlew connectedCheck -Pdropshots.record --stacktrace
 
       - name: Pull screenshots
         id: screenshotspull
@@ -203,12 +203,12 @@ jobs:
           disable_globbing: true
           commit_message: "🤖 Updates screenshots"
 
-      - name: (Fail-only) Bundle test reports
-        if: failure()
+      - name: Bundle test reports
+        if: always()
         run: find . -type d '(' -name 'reports' -o -name 'androidTest-results' ')' | zip -@ -r instrumentation-test-build-reports.zip
 
-      - name: (Fail-only) Upload the build report
-        if: failure()
+      - name: Upload the build report
+        if: always()
         uses: actions/upload-artifact@v2
         with:
           name: instrumentation-test-report
