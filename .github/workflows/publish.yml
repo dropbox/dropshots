@@ -142,6 +142,7 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 31
+          arch: x86_64
           profile: pixel_5
           force-avd-creation: false
           disable-animations: false
@@ -155,6 +156,7 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 31
+          arch: x86_64
           profile: pixel_5
           disable-animations: true
           force-avd-creation: false
@@ -176,6 +178,7 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 31
+          arch: x86_64
           profile: pixel_5
           disable-animations: true
           force-avd-creation: false
