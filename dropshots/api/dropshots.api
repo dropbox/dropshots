@@ -13,9 +13,11 @@ public final class com/dropbox/dropshots/Dropshots : org/junit/rules/TestRule {
 	public final fun assertSnapshot (Landroid/app/Activity;Ljava/lang/String;Ljava/lang/String;)V
 	public final fun assertSnapshot (Landroid/graphics/Bitmap;Ljava/lang/String;Ljava/lang/String;)V
 	public final fun assertSnapshot (Landroid/view/View;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun assertSnapshot (Ljava/lang/String;Ljava/lang/String;)V
 	public static synthetic fun assertSnapshot$default (Lcom/dropbox/dropshots/Dropshots;Landroid/app/Activity;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public static synthetic fun assertSnapshot$default (Lcom/dropbox/dropshots/Dropshots;Landroid/graphics/Bitmap;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public static synthetic fun assertSnapshot$default (Lcom/dropbox/dropshots/Dropshots;Landroid/view/View;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public static synthetic fun assertSnapshot$default (Lcom/dropbox/dropshots/Dropshots;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 }
 
 public final class com/dropbox/dropshots/ResultValidatorKt {

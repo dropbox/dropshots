@@ -26,6 +26,11 @@ android {
   kotlinOptions {
     jvmTarget = "1.8"
   }
+
+  val isRecordingScreenshots = hasProperty("dropshots.record")
+  buildTypes.getByName("debug") {
+    resValue("bool", "is_recording_screenshots", isRecordingScreenshots.toString())
+  }
 }
 
 kotlin {

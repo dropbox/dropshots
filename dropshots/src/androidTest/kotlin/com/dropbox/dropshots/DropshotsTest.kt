@@ -7,9 +7,8 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import com.dropbox.differ.SimpleImageComparator
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.fail
+import org.junit.Assert.*
+import org.junit.Assume.assumeFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -17,13 +16,13 @@ import org.junit.Test
 class DropshotsTest {
 
   private val fakeValidator = FakeResultValidator()
+  private val isRecordingScreenshots = isRecordingScreenshots()
 
   @get:Rule
   val activityScenarioRule = ActivityScenarioRule(TestActivity::class.java)
 
   @get:Rule
   val dropshots = Dropshots(
-    recordScreenshots = false,
     resultValidator = fakeValidator,
     imageComparator = SimpleImageComparator(
       maxDistance = 0.004f,
@@ -58,6 +57,13 @@ class DropshotsTest {
   }
 
   @Test
+  fun testMatchesFullScreenshot() {
+    activityScenarioRule.scenario.onActivity {
+      dropshots.assertSnapshot("MatchesFullScreenshot")
+    }
+  }
+
+  @Test
   fun testMatchesActivityScreenshot() {
     activityScenarioRule.scenario.onActivity {
       dropshots.assertSnapshot(it, "MatchesActivityScreenshot")
@@ -76,13 +82,16 @@ class DropshotsTest {
 
   @Test
   fun testFailsForDifferences() {
+    assumeFalse(isRecordingScreenshots)
+
     var failed = false
     activityScenarioRule.scenario.onActivity {
       try {
         Log.d("!!! TEST !!!", "Asserting snapshot...")
         dropshots.assertSnapshot(
           view = it.findViewById(android.R.id.content),
-          name = "MatchesViewScreenshotBad"
+          name = "MatchesViewScreenshotBad",
+          filePath = "static"
         )
         Log.d("!!! TEST !!!", "Snapshot asserted")
         failed = true
@@ -100,17 +109,22 @@ class DropshotsTest {
 
   @Test
   fun testPassesWhenValidatorPasses() {
+    assumeFalse(isRecordingScreenshots)
+
     fakeValidator.validator = { true }
     activityScenarioRule.scenario.onActivity {
       dropshots.assertSnapshot(
         view = it.findViewById(android.R.id.content),
-        name = "MatchesViewScreenshotBad"
+        name = "MatchesViewScreenshotBad",
+        filePath = "static"
       )
     }
   }
 
   @Test
   fun testFailsWhenValidatorFails() {
+    assumeFalse(isRecordingScreenshots)
+
     fakeValidator.validator = { false }
 
     var caughtError: AssertionError? = null
@@ -118,7 +132,8 @@ class DropshotsTest {
       try {
         dropshots.assertSnapshot(
           view = it.findViewById(android.R.id.content),
-          name = "MatchesViewScreenshotBad"
+          name = "MatchesViewScreenshotBad",
+          filePath = "static"
         )
       } catch (e: AssertionError) {
         caughtError = e
@@ -130,12 +145,15 @@ class DropshotsTest {
 
   @Test
   fun fastFailsForMismatchedSize() {
+    assumeFalse(isRecordingScreenshots)
+
     var failed = false
     activityScenarioRule.scenario.onActivity {
       try {
         dropshots.assertSnapshot(
           view = it.findViewById(android.R.id.content),
-          name = "MatchesViewScreenshotBadSize"
+          name = "MatchesViewScreenshotBadSize",
+          filePath = "static"
         )
         failed = true
       } catch (e: Throwable) {
