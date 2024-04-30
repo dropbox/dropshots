@@ -163,7 +163,7 @@ jobs:
           ram-size: 4096M
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           # Workaround for https://github.com/ReactiveCircus/android-emulator-runner/issues/319
-          script: adb uninstall com.dropbox.dropshots.test; ./.github/scripts/emu_setup.sh && ./gradlew connectedCheck --stacktrace
+          script: ./.github/scripts/emu_setup.sh && ./gradlew connectedCheck --stacktrace
 
       - name: Prevent pushing new screenshots if this is a fork
         id: checkfork_screenshots
@@ -185,7 +185,7 @@ jobs:
           ram-size: 4096M
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           # Workaround for https://github.com/ReactiveCircus/android-emulator-runner/issues/319
-          script: adb uninstall com.dropbox.dropshots.test; ./.github/scripts/emu_setup.sh && ./gradlew connectedCheck -Pdropshots.record --stacktrace
+          script: ./.github/scripts/emu_setup.sh && ./gradlew connectedCheck -Pdropshots.record --stacktrace
 
       - name: Pull screenshots
         id: screenshotspull

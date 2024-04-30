@@ -1,5 +1,9 @@
 #!/bin/bash
 
+echo "Cleaning up old emulator data"
+adb uninstall com.dropbox.dropshots.test || true
+adb shell rm -rf /storage/emulated/0/Download/screenshots || true
+
 adb wait-for-devices
 adb shell settings put global sysui_demo_allowed 1
 adb shell am broadcast -a com.android.systemui.demo -e command enter
