@@ -11,11 +11,10 @@ plugins {
 
 android {
   namespace = "com.dropbox.dropshots"
-  compileSdk = 32
+  compileSdk = 34
 
   defaultConfig {
     minSdk = 19
-    targetSdk = 32
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
