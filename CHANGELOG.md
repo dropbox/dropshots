@@ -1,5 +1,11 @@
 # Change Log
 
+## Version 0.4.2
+
+_2024-05-21_
+
+* Adds support for full screen snapshots. (#59)
+
 ## Version 0.4.1
 
 _2023-08-07_
