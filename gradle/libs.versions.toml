@@ -1,6 +1,6 @@
 [versions]
 kotlin = "1.9.23"
-agp = "7.4.2"
+agp = "8.4.1"
 androidx-core = "1.13.1"
 
 [libraries]
