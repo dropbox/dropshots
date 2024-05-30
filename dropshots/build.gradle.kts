@@ -12,6 +12,8 @@ plugins {
 android {
   namespace = "com.dropbox.dropshots"
   compileSdk = 34
+  testOptions.targetSdk = 34
+  lint.targetSdk = 34
 
   defaultConfig {
     minSdk = 19
