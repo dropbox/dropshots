@@ -29,7 +29,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: 11
+          java-version: 17
 
       - name: Build
         run: ./gradlew assemble --stacktrace
@@ -57,7 +57,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: 11
+          java-version: 17
 
       - name: Run Tests
         run: ./gradlew check --no-daemon --stacktrace
@@ -125,7 +125,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: 11
+          java-version: 17
 
       # Retrieve the cached emulator snapshot.
       - name: AVD cache
@@ -235,7 +235,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: 11
+          java-version: 17
 
       - name: Upload Snapshot
         run: ./gradlew clean publish -Pdropshots.releaseMode=true --no-daemon --no-parallel --no-configuration-cache --stacktrace
