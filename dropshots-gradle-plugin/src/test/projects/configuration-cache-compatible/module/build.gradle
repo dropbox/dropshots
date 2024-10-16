@@ -5,12 +5,12 @@ plugins {
 }
 
 android {
-  namespace = "com.dropbox.dropshots.test.configuration-cache-compatible"
-  compileSdk = 32
+  namespace = "com.dropbox.dropshots.test.configuration_cache_compatible"
+  compileSdk = 34
 
   defaultConfig {
     minSdk = 24
-    targetSdk = 32
+    targetSdk = 34
   }
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_1_8
