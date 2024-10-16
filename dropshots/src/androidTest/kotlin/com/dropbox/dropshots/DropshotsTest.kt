@@ -19,6 +19,9 @@ class DropshotsTest {
   private val isRecordingScreenshots = isRecordingScreenshots()
 
   @get:Rule
+  val emulatorConfigRule = EmulatorConfigRule()
+
+  @get:Rule
   val activityScenarioRule = ActivityScenarioRule(TestActivity::class.java)
 
   @get:Rule

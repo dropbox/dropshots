@@ -70,12 +70,6 @@ tasks.withType<KotlinCompile>().configureEach {
   }
 }
 
-java {
-  toolchain {
-    languageVersion.set(JavaLanguageVersion.of(11))
-  }
-}
-
 tasks.withType<JavaCompile>().configureEach {
   options.release.set(11)
 }

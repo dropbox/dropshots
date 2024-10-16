@@ -11,11 +11,12 @@ plugins {
 
 android {
   namespace = "com.dropbox.dropshots"
-  compileSdk = 32
+  compileSdk = 34
+  testOptions.targetSdk = 34
+  lint.targetSdk = 34
 
   defaultConfig {
-    minSdk = 19
-    targetSdk = 32
+    minSdk = 21
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -55,6 +56,7 @@ dependencies {
   androidTestImplementation(libs.androidx.test.ext.junit)
   androidTestImplementation(libs.androidx.test.rules)
   androidTestImplementation(libs.androidx.test.runner)
+  androidTestImplementation(libs.androidx.test.uiautomator)
 }
 
 mavenPublishing {
