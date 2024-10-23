@@ -79,8 +79,8 @@ public class DropshotsPlugin : Plugin<Project> {
         it.finalizedBy(clearScreenshotsTask)
       }
 
-      val updateScreenshotsTask = tasks.register(
-        "update${variantSlug}Screenshots",
+      val recordScreenshotsTask = tasks.register(
+        "record${variantSlug}Screenshots",
         PullScreenshotsTask::class.java,
       ) {
         it.description = "Updates the local reference screenshots"
@@ -92,24 +92,24 @@ public class DropshotsPlugin : Plugin<Project> {
         it.finalizedBy(clearScreenshotsTask)
       }
 
-      val isUpdatingScreenshots = project.objects.property(Boolean::class.java)
+      val isRecordingScreenshots = project.objects.property(Boolean::class.java)
       if (hasProperty(recordScreenshotsArg)) {
         project.logger.warn("The 'dropshots.record' property has been deprecated and will " +
           "be removed in a future version.")
-        isUpdatingScreenshots.set(true)
+        isRecordingScreenshots.set(true)
       }
       project.gradle.taskGraph.whenReady { graph ->
-        isUpdatingScreenshots.set(updateScreenshotsTask.map { graph.hasTask(it) })
+        isRecordingScreenshots.set(recordScreenshotsTask.map { graph.hasTask(it) })
       }
 
       val writeMarkerFileTask = tasks.register(
         "push${variantSlug}ScreenshotMarkerFile",
         PushFileTask::class.java,
       ) {
-        it.onlyIf { isUpdatingScreenshots.get() }
+        it.onlyIf { isRecordingScreenshots.get() }
         it.adbExecutable.set(adbExecutablePath)
         it.fileContents.set("\n")
-        it.remotePath.set(screenshotDir.map { dir -> "$dir/.isUpdatingScreenshots" })
+        it.remotePath.set(screenshotDir.map { dir -> "$dir/.isRecordingScreenshots" })
         it.finalizedBy(clearScreenshotsTask)
       }
       testTaskProvider.dependsOn(writeMarkerFileTask)

@@ -283,7 +283,7 @@ internal fun defaultRootScreenshotDirectory(): File {
  */
 internal fun isRecordingScreenshots(rootScreenshotDirectory: File): Boolean {
   val context = InstrumentationRegistry.getInstrumentation().targetContext
-  val markerFile = File(rootScreenshotDirectory, ".isUpdatingScreenshots")
+  val markerFile = File(rootScreenshotDirectory, ".isRecordingScreenshots")
   return markerFile.exists()
 }
 
