@@ -77,7 +77,7 @@ public class Dropshots(
     view: View,
     name: String = snapshotName,
     filePath: String? = null,
-  ) = assertSnapshot(Screenshot.capture(view).bitmap, name, filePath)
+  ): Unit = assertSnapshot(Screenshot.capture(view).bitmap, name, filePath)
 
   /**
    * Compares a screenshot of the activity to a reference screenshot from the test application's assets.
@@ -91,7 +91,7 @@ public class Dropshots(
     activity: Activity,
     name: String = snapshotName,
     filePath: String? = null,
-  ) = assertSnapshot(Screenshot.capture(activity).bitmap, name, filePath)
+  ): Unit = assertSnapshot(Screenshot.capture(activity).bitmap, name, filePath)
 
   /**
    * Compares a screenshot of the visible screen content to a reference screenshot from the test application's assets.
@@ -104,7 +104,7 @@ public class Dropshots(
   public fun assertSnapshot(
     name: String = snapshotName,
     filePath: String? = null,
-  ) = assertSnapshot(Screenshot.capture().bitmap, name, filePath)
+  ): Unit = assertSnapshot(Screenshot.capture().bitmap, name, filePath)
 
   @Suppress("LongMethod")
   public fun assertSnapshot(
