@@ -10,6 +10,8 @@ import java.util.Locale
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
+private const val recordScreenshotsArg = "dropshots.record"
+
 public class DropshotsPlugin : Plugin<Project> {
   override fun apply(project: Project) {
     project.pluginManager.withPlugin("com.android.application") {
@@ -26,7 +28,6 @@ public class DropshotsPlugin : Plugin<Project> {
   }
 
   private fun Project.configureDropshots(extension: TestedExtension) {
-
     project.afterEvaluate {
       it.dependencies.add(
         "androidTestImplementation",
@@ -92,6 +93,11 @@ public class DropshotsPlugin : Plugin<Project> {
       }
 
       val isUpdatingScreenshots = project.objects.property(Boolean::class.java)
+      if (hasProperty(recordScreenshotsArg)) {
+        project.logger.warn("The 'dropshots.record' property has been deprecated and will " +
+          "be removed in a future version.")
+        isUpdatingScreenshots.set(true)
+      }
       project.gradle.taskGraph.whenReady { graph ->
         isUpdatingScreenshots.set(updateScreenshotsTask.map { graph.hasTask(it) })
       }
