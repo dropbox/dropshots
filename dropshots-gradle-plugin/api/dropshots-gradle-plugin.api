@@ -21,6 +21,16 @@ public abstract class com/dropbox/dropshots/PullScreenshotsTask : org/gradle/api
 	public final fun pullScreenshots ()V
 }
 
+public abstract class com/dropbox/dropshots/PushFileTask : org/gradle/api/DefaultTask {
+	public fun <init> ()V
+	public abstract fun getAdbExecutable ()Lorg/gradle/api/provider/Property;
+	protected abstract fun getExecOperations ()Lorg/gradle/process/ExecOperations;
+	public abstract fun getFileContents ()Lorg/gradle/api/provider/Property;
+	public abstract fun getRemotePath ()Lorg/gradle/api/provider/Property;
+	protected abstract fun getTempFileProvider ()Lorg/gradle/api/internal/file/temp/TemporaryFileProvider;
+	public final fun push ()V
+}
+
 public final class com/dropbox/dropshots/VersionKt {
 	public static final field VERSION Ljava/lang/String;
 }
