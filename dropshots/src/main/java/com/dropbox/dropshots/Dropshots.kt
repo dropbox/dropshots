@@ -38,6 +38,7 @@ public class Dropshots internal constructor(
 
   private val snapshotName: String get() = testName
 
+  @JvmOverloads
   public constructor(
     /**
      * Function to create a filename from a snapshot name (i.e. the name provided when taking
