@@ -5,6 +5,7 @@ import com.android.build.gradle.LibraryExtension
 import com.android.build.gradle.TestedExtension
 import com.android.build.gradle.api.ApkVariant
 import com.android.build.gradle.internal.tasks.AndroidTestTask
+import com.android.build.gradle.internal.tasks.factory.dependsOn
 import java.util.Locale
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -54,6 +55,7 @@ public class DropshotsPlugin : Plugin<Project> {
     val adbExecutablePath = provider { extension.adbExecutable.path }
     extension.testVariants.all { variant ->
       val testTaskProvider = variant.connectedInstrumentTestProvider
+      val variantSlug = variant.name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
 
       val screenshotDir = provider {
         val appId = if (variant.testedVariant is ApkVariant) {
@@ -66,7 +68,7 @@ public class DropshotsPlugin : Plugin<Project> {
       }
 
       val clearScreenshotsTask = tasks.register(
-        "clear${variant.name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }}Screenshots",
+        "clear${variantSlug}Screenshots",
         ClearScreenshotsTask::class.java,
       ) {
         it.adbExecutable.set(adbExecutablePath)
@@ -74,32 +76,48 @@ public class DropshotsPlugin : Plugin<Project> {
       }
 
       val pullScreenshotsTask = tasks.register(
-        "pull${variant.name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }}Screenshots",
+        "pull${variantSlug}Screenshots",
         PullScreenshotsTask::class.java,
       ) {
         it.onlyIf { !isRecordingScreenshots }
         it.adbExecutable.set(adbExecutablePath)
-        it.screenshotDir.set(screenshotDir)
+        it.screenshotDir.set(screenshotDir.map { base -> "$base/diff" })
         it.outputDirectory.set(testTaskProvider.flatMap { (it as AndroidTestTask).resultsDir })
         it.finalizedBy(clearScreenshotsTask)
       }
 
       val updateScreenshotsTask = tasks.register(
-        "update${variant.name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }}Screenshots",
+        "update${variantSlug}Screenshots",
         PullScreenshotsTask::class.java,
       ) {
         it.description = "Updates the local reference screenshots"
 
-        it.onlyIf { isRecordingScreenshots }
         it.adbExecutable.set(adbExecutablePath)
-        it.screenshotDir.set(screenshotDir)
+        it.screenshotDir.set(screenshotDir.map { base -> "$base/reference" })
         it.outputDirectory.set(referenceScreenshotDirectory)
         it.dependsOn(testTaskProvider)
         it.finalizedBy(clearScreenshotsTask)
       }
 
+      val isUpdatingScreenshots = project.objects.property(Boolean::class.java)
+      project.gradle.taskGraph.whenReady { graph ->
+        isUpdatingScreenshots.set(updateScreenshotsTask.map { graph.hasTask(it) })
+      }
+
+      val writeMarkerFileTask = tasks.register(
+        "push${variantSlug}ScreenshotMarkerFile",
+        PushFileTask::class.java,
+      ) {
+        it.onlyIf { isUpdatingScreenshots.get() }
+        it.adbExecutable.set(adbExecutablePath)
+        it.fileContents.set("\n")
+        it.remotePath.set(screenshotDir.map { dir -> "$dir/.isUpdatingScreenshots" })
+        it.finalizedBy(clearScreenshotsTask)
+      }
+      testTaskProvider.dependsOn(writeMarkerFileTask)
+
       testTaskProvider.configure {
-        it.finalizedBy(pullScreenshotsTask, updateScreenshotsTask)
+        it.finalizedBy(pullScreenshotsTask)
       }
     }
   }

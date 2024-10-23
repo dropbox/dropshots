@@ -12,7 +12,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class CustomImageComparatorTest {
-  private val isRecordingScreenshots = isRecordingScreenshots()
+  private val isRecordingScreenshots = false
 
   @get:Rule
   val activityScenarioRule = ActivityScenarioRule(TestActivity::class.java)
