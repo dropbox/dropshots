@@ -10,8 +10,6 @@ import java.util.Locale
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
-private const val recordScreenshotsArg = "dropshots.record"
-
 public class DropshotsPlugin : Plugin<Project> {
   override fun apply(project: Project) {
     project.pluginManager.withPlugin("com.android.application") {
@@ -28,11 +26,6 @@ public class DropshotsPlugin : Plugin<Project> {
   }
 
   private fun Project.configureDropshots(extension: TestedExtension) {
-    val isRecordingScreenshots = hasProperty(recordScreenshotsArg)
-
-    extension.buildTypes.getByName("debug") {
-      it.resValue("bool", "is_recording_screenshots", isRecordingScreenshots.toString())
-    }
 
     project.afterEvaluate {
       it.dependencies.add(
@@ -79,7 +72,6 @@ public class DropshotsPlugin : Plugin<Project> {
         "pull${variantSlug}Screenshots",
         PullScreenshotsTask::class.java,
       ) {
-        it.onlyIf { !isRecordingScreenshots }
         it.adbExecutable.set(adbExecutablePath)
         it.screenshotDir.set(screenshotDir.map { base -> "$base/diff" })
         it.outputDirectory.set(testTaskProvider.flatMap { (it as AndroidTestTask).resultsDir })
@@ -119,14 +111,6 @@ public class DropshotsPlugin : Plugin<Project> {
       testTaskProvider.configure {
         it.finalizedBy(pullScreenshotsTask)
       }
-    }
-  }
-
-  private fun Project.getAndroidExtension(): TestedExtension {
-    return when {
-      plugins.hasPlugin("com.android.application") -> extensions.findByType(AppExtension::class.java)!!
-      plugins.hasPlugin("com.android.library") -> extensions.findByType(LibraryExtension::class.java)!!
-      else -> throw IllegalArgumentException("Dropshots can only be applied to an Android project.")
     }
   }
 }
