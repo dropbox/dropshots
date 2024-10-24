@@ -178,7 +178,7 @@ jobs:
           cp dropshots/build/reports/androidTests/dropshots/*.png dropshots/src/androidTest/assets/
 
       - name: Push new screenshots if available
-        uses: stefanzweifel/git-auto-commit-action@4b8a201e31cadd9829df349894b28c54e6c19fe6
+        uses: stefanzweifel/git-auto-commit-action@050015d40644de3e8d2365687c1fbc235352bcff
         if: steps.screenshotspull.outcome == 'success'
         with:
           file_pattern: '*/*.png'
