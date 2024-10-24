@@ -27,11 +27,6 @@ android {
   kotlinOptions {
     jvmTarget = "1.8"
   }
-
-  val isRecordingScreenshots = hasProperty("dropshots.record")
-  buildTypes.getByName("debug") {
-    resValue("bool", "is_recording_screenshots", isRecordingScreenshots.toString())
-  }
 }
 
 kotlin {
@@ -69,19 +64,49 @@ mavenPublishing {
 
 val adbExecutablePath = provider { android.adbExecutable.path }
 android.testVariants.all {
+  val screenshotDir = "/storage/emulated/0/Download/screenshots/com.dropbox.dropshots.test"
   val connectedAndroidTest = connectedInstrumentTestProvider
+  val isRecordingScreenshots = hasProperty("dropshots.record")
+
+  val pushMarkerFileTask = tasks.register("push${name.capitalize()}ScreenshotMarkerFile") {
+    description = "Push screenshot marker file to test device."
+    group = "verification"
+    outputs.upToDateWhen { false }
+    onlyIf { isRecordingScreenshots }
+
+    doLast {
+      val adb = adbExecutablePath.get()
+      project.exec {
+        executable = adb
+        args = listOf("shell", "mkdir", "-p", screenshotDir)
+      }
+      project.exec {
+        executable = adb
+        args = listOf("shell", "touch", "$screenshotDir/.isRecordingScreenshots")
+      }
+    }
+  }
+
   val pullScreenshotsTask = tasks.register("pull${name.capitalize()}Screenshots") {
     description = "Pull screenshots from the test device."
     group = "verification"
-    outputs.dir(project.layout.buildDirectory.dir("reports/androidTests/dropshots"))
+    if (isRecordingScreenshots) {
+      outputs.dir(project.layout.projectDirectory.dir("src/androidTest/assets"))
+    } else {
+      outputs.dir(project.layout.buildDirectory.dir("reports/androidTests/dropshots"))
+    }
     outputs.upToDateWhen { false }
 
     doLast {
-      val outputDir = outputs.files.getSingleFile()
+      val outputDir = outputs.files.singleFile
       outputDir.mkdirs()
 
       val adb = adbExecutablePath.get()
-      val dir = "/storage/emulated/0/Download/screenshots/com.dropbox.dropshots.test"
+      val dir = if (isRecordingScreenshots) {
+        "$screenshotDir/reference"
+      } else {
+        screenshotDir
+      }
       val checkResult = project.exec {
         executable = adb
         args = listOf("shell", "test", "-d", dir)
@@ -107,11 +132,14 @@ android.testVariants.all {
 
         project.exec {
           executable = adb
-          args = listOf("shell", "rm", "-r", dir)
+          args = listOf("shell", "rm", "-r", screenshotDir)
         }
       }
     }
   }
 
-  connectedAndroidTest.configure { finalizedBy(pullScreenshotsTask) }
+  connectedAndroidTest.configure {
+    dependsOn(pushMarkerFileTask)
+    finalizedBy(pullScreenshotsTask)
+  }
 }
