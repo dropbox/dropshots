@@ -282,7 +282,6 @@ internal fun defaultRootScreenshotDirectory(): File {
  * Dropshots should record screenshots or validate them.
  */
 internal fun isRecordingScreenshots(rootScreenshotDirectory: File): Boolean {
-  val context = InstrumentationRegistry.getInstrumentation().targetContext
   val markerFile = File(rootScreenshotDirectory, ".isRecordingScreenshots")
   return markerFile.exists()
 }

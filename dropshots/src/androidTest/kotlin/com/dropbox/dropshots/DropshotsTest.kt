@@ -37,8 +37,7 @@ class DropshotsTest {
 
   private val fakeValidator = FakeResultValidator()
   private var filenameFunc: (String) -> String = { it }
-  private val isRecordingScreenshots = InstrumentationRegistry.getInstrumentation()
-    .targetContext.resources.getBoolean(R.bool.is_recording_screenshots)
+  private val isRecordingScreenshots = isRecordingScreenshots(defaultRootScreenshotDirectory())
   private lateinit var imageDirectory: File
 
   @get:Rule

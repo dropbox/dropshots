@@ -2,66 +2,132 @@ package com.dropbox.dropshots
 
 import com.google.common.truth.Truth.assertThat
 import java.io.File
-import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
-import org.junit.Assert.assertTrue
+import org.gradle.testkit.runner.TaskOutcome
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 
 class DropshotsPluginTest {
+
+  private val agpVersion = "8.7.1"
+  @get:Rule val tmpFolder = TemporaryFolder()
+
+  private lateinit var projectDir: File
+  private lateinit var settingsFile: File
+  private lateinit var buildFile: File
   private lateinit var gradleRunner: GradleRunner
 
   @Before
   fun setup() {
+    // Setup project directory
+    projectDir = tmpFolder.newFolder().apply { mkdir() }
+    File(projectDir, "gradle.properties").writeText("android.useAndroidX=true")
+    // language=groovy
+    settingsFile = File(projectDir, "settings.gradle").apply {
+      writeText(
+        """
+          pluginManagement {
+            repositories {
+              gradlePluginPortal()
+              mavenCentral()
+              google()
+            }
+          }
+        """.trimIndent()
+      )
+    }
+    // language=groovy
+    buildFile = File(projectDir, "build.gradle").apply {
+      writeText(
+        """
+          plugins {
+            id("com.android.library") version "$agpVersion"
+            id("com.dropbox.dropshots")
+          }
+
+          android {
+            namespace = "com.dropbox.dropshots.test.library"
+            compileSdk = 35
+
+            defaultConfig.minSdk = 24
+          }
+
+          repositories {
+            mavenCentral()
+            google()
+          }
+        """.trimIndent()
+      )
+    }
+
     gradleRunner = GradleRunner.create()
       .withPluginClasspath()
+      .withProjectDir(projectDir)
   }
 
   @Test
   fun configurationCache() {
-    val fixtureRoot = File("src/test/projects/configuration-cache-compatible")
-
     gradleRunner
-      .withArguments(":module:tasks", "--configuration-cache", "--stacktrace")
-      .runFixture(fixtureRoot) { build() }
+      .withArguments("tasks", "--configuration-cache", "--stacktrace")
+      .build()
   }
 
   @Test
   fun `applies to library plugins applied after plugin`() {
-    val fixtureRoot = File("src/test/projects/dropshots-before-android-plugin")
-
     val result = gradleRunner
-      .withArguments(":module:tasks", "--configuration-cache", "--stacktrace")
-      .runFixture(fixtureRoot) { build() }
-    assertThat(result.output).contains("updateDebugAndroidTestScreenshots")
+      .withBuildScript(
+        // language = groovy
+        """
+          plugins {
+            id("com.dropbox.dropshots")
+            id("com.android.library") version "$agpVersion"
+          }
+
+          android {
+            namespace = "com.dropbox.dropshots.test.library"
+            compileSdk = 35
+
+            defaultConfig.minSdk = 24
+          }
+
+          repositories {
+            mavenCentral()
+            google()
+          }
+        """.trimIndent()
+      )
+      .withArguments("tasks", "--configuration-cache", "--stacktrace")
+      .build()
+    assertThat(result.output).contains("recordDebugAndroidTestScreenshots")
     assertThat(result.output).contains("pullDebugAndroidTestScreenshots")
   }
 
   @Test
-  fun `adds res value appropriately`() {
-    val fixtureRoot = File("src/test/projects/prints-res-values")
-
-    val resultWithFlag = gradleRunner
-      .withArguments(":module:printResValues", "-Pdropshots.record", "--stacktrace")
-      .runFixture(fixtureRoot) { build() }
-    assertThat(resultWithFlag.output).contains("R.bool.is_recording_screenshots = true")
-
-    val resultWithoutFlag = gradleRunner
-      .withArguments(":module:printResValues", "--stacktrace")
-      .runFixture(fixtureRoot) { build() }
-    assertThat(resultWithoutFlag.output).contains("R.bool.is_recording_screenshots = false")
+  fun `executes marker file push only when record task is run`() {
+    val result = gradleRunner
+      .withArguments("recordDebugAndroidTestScreenshots", "--stacktrace")
+      .build()
+    with(result.task(":pushDebugAndroidTestScreenshotMarkerFile")) {
+      assertThat(this).isNotNull()
+      assertThat(this!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
+    }
   }
 
-  private fun GradleRunner.runFixture(
-    projectRoot: File,
-    action: GradleRunner.() -> BuildResult,
-  ): BuildResult {
-    val settings = File(projectRoot, "settings.gradle")
-    if (!settings.exists()) {
-      settings.createNewFile()
-      settings.deleteOnExit()
+  @Test
+  fun `skips marker file push only when record task is run`() {
+    val result = gradleRunner
+      .withArguments("connectedDebugAndroidTest", "--stacktrace")
+      .build()
+    with(result.task(":pushDebugAndroidTestScreenshotMarkerFile")) {
+      assertThat(this).isNotNull()
+      assertThat(this!!.outcome).isEqualTo(TaskOutcome.SKIPPED)
     }
+  }
 
-    return withProjectDir(projectRoot).action()
+  private fun GradleRunner.withBuildScript(buildScript: String): GradleRunner {
+    buildFile.writeText(buildScript)
+    return this
   }
 }
