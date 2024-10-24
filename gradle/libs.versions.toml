@@ -6,7 +6,7 @@ androidx-core = "1.13.1"
 [libraries]
 android = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 androidx-activity = { module = "androidx.activity:activity-ktx", version = "1.9.2" }
-androidx-annotation = { module = "androidx.annotation:annotation", version = "1.8.2" }
+androidx-annotation = { module = "androidx.annotation:annotation", version = "1.9.0" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version = "1.7.0" }
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version = "2.1.4" }
 androidx-core = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
