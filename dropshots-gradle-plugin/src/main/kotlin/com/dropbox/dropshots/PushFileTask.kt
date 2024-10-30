@@ -1,8 +1,10 @@
 package com.dropbox.dropshots
 
+import java.io.ByteArrayOutputStream
+import java.nio.charset.StandardCharsets
+import java.util.regex.Pattern
 import javax.inject.Inject
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
@@ -44,9 +46,23 @@ public abstract class PushFileTask : DefaultTask() {
 
     val adb = adbExecutable.get()
     val remote = remotePath.get()
-    execOperations.exec {
+    val output = ByteArrayOutputStream()
+    val checkResult = execOperations.exec {
       it.executable = adb
-      it.args = listOf("push", tempFile.absolutePath, remote)
+      it.args = listOf("devices")
+      it.isIgnoreExitValue = true
+      it.standardOutput = output
+    }
+
+    val whitespacePattern = Pattern.compile("\\s")
+    val hasConnectedDevice = output.toString(StandardCharsets.UTF_8).lines()
+      .any { it.trim().split(whitespacePattern).last() == "device" }
+
+    if (checkResult.exitValue == 0 && hasConnectedDevice) {
+      execOperations.exec {
+        it.executable = adb
+        it.args = listOf("push", tempFile.absolutePath, remote)
+      }
     }
   }
 }
