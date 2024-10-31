@@ -15,25 +15,19 @@ if [[ "$2" != "" ]]; then
 fi
 
 $ADB root || exit
-$ADB wait-for-devices
+$ADB wait-for-device
 $ADB shell settings put global sysui_demo_allowed 1
 
 if [ $CMD == "on" ]; then
   $ADB shell am broadcast -a com.android.systemui.demo -e command enter || exit
   if [[ "$HHMM" != "" ]]; then
-    $ADB shell am broadcast -a com.android.systemui.demo -e command clock -e
-hhmm ${HHMM}
+    $ADB shell am broadcast -a com.android.systemui.demo -e command clock -e hhmm ${HHMM}
   fi
-  $ADB shell am broadcast -a com.android.systemui.demo -e command battery -e
-plugged false
-  $ADB shell am broadcast -a com.android.systemui.demo -e command battery -e
-level 100
-  $ADB shell am broadcast -a com.android.systemui.demo -e command network -e
-wifi show -e level 4
-  $ADB shell am broadcast -a com.android.systemui.demo -e command network -e
-mobile show -e datatype none -e level 4
-  $ADB shell am broadcast -a com.android.systemui.demo -e command notifications
--e visible false
+  $ADB shell am broadcast -a com.android.systemui.demo -e command battery -e plugged false
+  $ADB shell am broadcast -a com.android.systemui.demo -e command battery -e level 100
+  $ADB shell am broadcast -a com.android.systemui.demo -e command network -e wifi show -e level 4
+  $ADB shell am broadcast -a com.android.systemui.demo -e command network -e mobile show -e datatype none -e level 4
+  $ADB shell am broadcast -a com.android.systemui.demo -e command notifications -e visible false
 elif [ $CMD == "off" ]; then
   $ADB shell am broadcast -a com.android.systemui.demo -e command exit
 fi
