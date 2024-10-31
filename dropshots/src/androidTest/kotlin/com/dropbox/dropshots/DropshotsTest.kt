@@ -30,9 +30,6 @@ import org.junit.Test
 class DropshotsTest {
 
   @get:Rule
-  val emulatorConfigRule = EmulatorConfigRule()
-
-  @get:Rule
   val activityScenarioRule = ActivityScenarioRule(TestActivity::class.java)
 
   private val fakeValidator = FakeResultValidator()
