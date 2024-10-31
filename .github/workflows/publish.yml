@@ -130,7 +130,7 @@ jobs:
           disable-animations: false
           ram-size: 4096M
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: ./.github/scripts/emu_setup.sh && echo "Generated AVD snapshot for caching."
+          script: echo "Generated AVD snapshot for caching."
 
       - name: Run instrumentation tests
         id: screenshotsverify
@@ -145,7 +145,7 @@ jobs:
           ram-size: 4096M
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           # Workaround for https://github.com/ReactiveCircus/android-emulator-runner/issues/319
-          script: ./.github/scripts/emu_setup.sh && ./gradlew connectedCheck --stacktrace
+          script: ./gradlew connectedCheck --stacktrace
 
       - name: Prevent pushing new screenshots if this is a fork
         id: checkfork_screenshots
@@ -167,15 +167,13 @@ jobs:
           ram-size: 4096M
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           # Workaround for https://github.com/ReactiveCircus/android-emulator-runner/issues/319
-          script: ./.github/scripts/emu_setup.sh && ./gradlew connectedCheck -Pdropshots.record --stacktrace
+          script: ./gradlew recordDebugAndroidTestScreenshots --stacktrace
 
       - name: Pull screenshots
         id: screenshotspull
         continue-on-error: true
         if: steps.screenshotsrecord.outcome == 'success' && github.event_name == 'pull_request'
-        run: |
-          rm dropshots/src/androidTest/assets/*.png || true
-          cp dropshots/build/reports/androidTests/dropshots/*.png dropshots/src/androidTest/assets/
+        run: cp dropshots/build/reports/androidTests/dropshots/reference/*.png dropshots/src/androidTest/assets/
 
       - name: Push new screenshots if available
         uses: stefanzweifel/git-auto-commit-action@4b8a201e31cadd9829df349894b28c54e6c19fe6

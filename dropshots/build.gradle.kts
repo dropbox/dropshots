@@ -66,13 +66,18 @@ val adbExecutablePath = provider { android.adbExecutable.path }
 android.testVariants.all {
   val screenshotDir = "/storage/emulated/0/Download/screenshots/com.dropbox.dropshots.test"
   val connectedAndroidTest = connectedInstrumentTestProvider
-  val isRecordingScreenshots = hasProperty("dropshots.record")
+
+  val recordScreenshotsTask = tasks.register("record${name.capitalize()}Screenshots")
+  val isRecordingScreenshots = project.objects.property(Boolean::class.java)
+  project.gradle.taskGraph.whenReady {
+    isRecordingScreenshots.set(recordScreenshotsTask.map { hasTask(it) })
+  }
 
   val pushMarkerFileTask = tasks.register("push${name.capitalize()}ScreenshotMarkerFile") {
     description = "Push screenshot marker file to test device."
     group = "verification"
     outputs.upToDateWhen { false }
-    onlyIf { isRecordingScreenshots }
+    onlyIf { isRecordingScreenshots.get() }
 
     doLast {
       val adb = adbExecutablePath.get()
@@ -90,11 +95,7 @@ android.testVariants.all {
   val pullScreenshotsTask = tasks.register("pull${name.capitalize()}Screenshots") {
     description = "Pull screenshots from the test device."
     group = "verification"
-    if (isRecordingScreenshots) {
-      outputs.dir(project.layout.projectDirectory.dir("src/androidTest/assets"))
-    } else {
-      outputs.dir(project.layout.buildDirectory.dir("reports/androidTests/dropshots"))
-    }
+    outputs.dir(project.layout.buildDirectory.dir("reports/androidTests/dropshots"))
     outputs.upToDateWhen { false }
 
     doLast {
@@ -102,14 +103,9 @@ android.testVariants.all {
       outputDir.mkdirs()
 
       val adb = adbExecutablePath.get()
-      val dir = if (isRecordingScreenshots) {
-        "$screenshotDir/reference"
-      } else {
-        screenshotDir
-      }
       val checkResult = project.exec {
         executable = adb
-        args = listOf("shell", "test", "-d", dir)
+        args = listOf("shell", "test", "-d", screenshotDir)
         isIgnoreExitValue = true
       }
 
@@ -117,16 +113,16 @@ android.testVariants.all {
         val output = ByteArrayOutputStream()
         project.exec {
           executable = adb
-          args = listOf("pull", "$dir/.", outputDir.path)
+          args = listOf("pull", "$screenshotDir/.", outputDir.path)
           standardOutput = output
         }
 
-        val fileCount = """^$dir/?\./: ([0-9]*) files pulled,.*$""".toRegex()
+        val fileCount = """^$screenshotDir/?\./: ([0-9]*) files pulled,.*$""".toRegex()
         val matchResult = fileCount.find(output.toString(Charsets.UTF_8))
         if (matchResult != null && matchResult.groups.size > 1) {
           println("${matchResult.groupValues[1]} screenshots saved at ${outputDir.path}")
         } else {
-          println("Unknown result executing adb: $adb pull $dir/. ${outputDir.path}")
+          println("Unknown result executing adb: $adb pull $screenshotDir/. ${outputDir.path}")
           print(output.toString(Charsets.UTF_8))
         }
 
