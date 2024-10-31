@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 CMD=$1
 
 if [[ $ADB == "" ]]; then
