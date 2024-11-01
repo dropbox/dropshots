@@ -127,10 +127,7 @@ jobs:
           api-level: 31
           arch: x86_64
           profile: pixel_5
-          script: |
-            ./.github/scripts/demo_mode.sh on 1234
-            ./gradlew connectedCheck --stacktrace
-            ./.github/scripts/demo_mode.sh off
+          script: ./gradlew connectedCheck --stacktrace
 
       - name: Prevent pushing new screenshots if this is a fork
         id: checkfork_screenshots
@@ -144,6 +141,17 @@ jobs:
         continue-on-error: true
         if: steps.screenshotsverify.outcome == 'failure' && github.event_name == 'pull_request'
         run: cp dropshots/build/reports/androidTests/dropshots/reference/*.png dropshots/src/androidTest/assets/
+
+      # Since commits from actions don't trigger new actions, we validate the new screenshots here
+      # before we commit them to ensure there isn't flakiness in the tests.
+      - name: Validate updated screenshots
+        uses: reactivecircus/android-emulator-runner@62dbb605bba737720e10b196cb4220d374026a6d # v2.33.0
+        if: steps.screenshotsverify.outcome == 'failure' && steps.screenshotspull.outcome == 'success'
+        with:
+          api-level: 31
+          arch: x86_64
+          profile: pixel_5
+          script: ./gradlew connectedCheck --stacktrace
 
       - name: Push new screenshots if available
         uses: stefanzweifel/git-auto-commit-action@4b8a201e31cadd9829df349894b28c54e6c19fe6

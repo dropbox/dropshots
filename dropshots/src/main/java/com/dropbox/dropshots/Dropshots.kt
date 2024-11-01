@@ -1,7 +1,6 @@
 package com.dropbox.dropshots
 
 import android.app.Activity
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
@@ -30,7 +29,6 @@ public class Dropshots internal constructor(
   private val resultValidator: ResultValidator,
 ) : TestRule {
   private val context = InstrumentationRegistry.getInstrumentation().context
-  private val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
   private var fqName: String = ""
   private var packageName: String = ""
   private var className: String = ""

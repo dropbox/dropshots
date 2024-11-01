@@ -92,6 +92,43 @@ android.testVariants.all {
     }
   }
 
+  val setupEmulatorTask = tasks.register("setup${name.capitalize()}ScreenshotEmulator") {
+    description = "Configures the test device for screenshots."
+    group = "verification"
+    doLast {
+      val adb = adbExecutablePath.get()
+      fun adbCommand(cmd: String): ExecResult {
+        return project.exec {
+          executable = adb
+          args = cmd.split(" ")
+        }
+      }
+
+      adbCommand("root")
+      adbCommand("wait-for-device")
+      adbCommand("shell cmd overlay enable com.android.internal.systemui.navbar.gestural")
+      adbCommand("shell settings put global sysui_demo_allowed 1")
+      adbCommand("shell am broadcast -a com.android.systemui.demo -e command enter")
+        .assertNormalExitValue()
+      adbCommand("shell am broadcast -a com.android.systemui.demo -e command clock -e hhmm 1234")
+      adbCommand("shell am broadcast -a com.android.systemui.demo -e command battery -e plugged false")
+      adbCommand("shell am broadcast -a com.android.systemui.demo -e command battery -e level 100")
+      adbCommand("shell am broadcast -a com.android.systemui.demo -e command network -e wifi show -e level 4")
+      adbCommand("shell am broadcast -a com.android.systemui.demo -e command network -e mobile show -e datatype none -e level 4")
+      adbCommand("shell am broadcast -a com.android.systemui.demo -e command notifications -e visible false")
+    }
+  }
+  val restoreEmulatorTask = tasks.register("restore${name.capitalize()}ScreenshotEmulator") {
+    description = "Restores the test device from screenshot mode."
+    group = "verification"
+    doLast {
+      project.exec {
+        executable = adbExecutablePath.get()
+        args = "shell am broadcast -a com.android.systemui.demo -e command exit".split(" ")
+      }
+    }
+  }
+
   val pullScreenshotsTask = tasks.register("pull${name.capitalize()}Screenshots") {
     description = "Pull screenshots from the test device."
     group = "verification"
@@ -111,24 +148,29 @@ android.testVariants.all {
 
       if (checkResult.exitValue == 0) {
         val output = ByteArrayOutputStream()
-        project.exec {
+        val pullResult = project.exec {
           executable = adb
           args = listOf("pull", "$screenshotDir/.", outputDir.path)
           standardOutput = output
+          isIgnoreExitValue = true
         }
 
-        val fileCount = """^$screenshotDir/?\./: ([0-9]*) files pulled,.*$""".toRegex()
-        val matchResult = fileCount.find(output.toString(Charsets.UTF_8))
-        if (matchResult != null && matchResult.groups.size > 1) {
-          println("${matchResult.groupValues[1]} screenshots saved at ${outputDir.path}")
+        if (pullResult.exitValue == 0) {
+          val fileCount = """^$screenshotDir/?\./: ([0-9]*) files pulled,.*$""".toRegex()
+          val matchResult = fileCount.find(output.toString(Charsets.UTF_8))
+          if (matchResult != null && matchResult.groups.size > 1) {
+            println("${matchResult.groupValues[1]} screenshots saved at ${outputDir.path}")
+          } else {
+            println("Unknown result executing adb: $adb pull $screenshotDir/. ${outputDir.path}")
+            print(output.toString(Charsets.UTF_8))
+          }
         } else {
-          println("Unknown result executing adb: $adb pull $screenshotDir/. ${outputDir.path}")
-          print(output.toString(Charsets.UTF_8))
+          println("Failed to pull screenshots.")
         }
 
         project.exec {
           executable = adb
-          args = listOf("shell", "rm", "-r", screenshotDir)
+          args = listOf("shell", "rm", "-r", "/storage/emulated/0/Download/screenshots")
         }
       }
     }
@@ -137,5 +179,7 @@ android.testVariants.all {
   connectedAndroidTest.configure {
     dependsOn(pushMarkerFileTask)
     finalizedBy(pullScreenshotsTask)
+    dependsOn(setupEmulatorTask)
+    finalizedBy(restoreEmulatorTask)
   }
 }

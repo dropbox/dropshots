@@ -1,5 +1,7 @@
 package com.dropbox.dropshots
 
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Environment
 import android.util.Log
@@ -16,16 +18,17 @@ import java.nio.file.FileVisitor
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
+import kotlin.io.path.deleteExisting
+import kotlin.io.path.deleteIfExists
 import org.junit.After
 import org.junit.Assert.assertArrayEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
-import org.junit.Assume.assumeFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestName
 
 class DropshotsTest {
 
@@ -37,6 +40,7 @@ class DropshotsTest {
   private val isRecordingScreenshots = isRecordingScreenshots(defaultRootScreenshotDirectory())
   private lateinit var imageDirectory: File
 
+  @get:Rule val testName = TestName()
   @get:Rule
   val dropshots = Dropshots(
     filenameFunc = filenameFunc,
@@ -54,7 +58,7 @@ class DropshotsTest {
     imageDirectory =
       File(
         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-        "screenshots/test-${System.currentTimeMillis()}",
+        "screenshots/test-${testName.methodName}",
       )
     fakeValidator.validator = CountValidator(0)
     activityScenarioRule.scenario.onActivity { activity ->
@@ -82,27 +86,7 @@ class DropshotsTest {
   @After
   fun after() {
     if (imageDirectory.exists()) {
-      Files.walkFileTree(imageDirectory.toPath(), object : FileVisitor<Path> {
-        override fun preVisitDirectory(dir: Path?, attrs: BasicFileAttributes?): FileVisitResult {
-          return FileVisitResult.CONTINUE
-        }
-
-        override fun visitFile(file: Path?, attrs: BasicFileAttributes?): FileVisitResult {
-          requireNotNull(file)
-          Files.delete(file)
-          return FileVisitResult.CONTINUE
-        }
-
-        override fun visitFileFailed(file: Path?, exc: IOException?): FileVisitResult {
-          throw exc!!
-        }
-
-        override fun postVisitDirectory(dir: Path?, exc: IOException?): FileVisitResult {
-          requireNotNull(dir)
-          Files.delete(dir)
-          return FileVisitResult.CONTINUE
-        }
-      })
+      imageDirectory.deleteRecursively()
     }
   }
 
@@ -131,7 +115,7 @@ class DropshotsTest {
   }
 
   @Test
-  fun testWritesReferenceImageOnFailureWhenRecording() {
+  fun testWritesReferenceImageForMissingImages() {
     val dropshots = Dropshots(
       rootScreenshotDirectory = imageDirectory,
       filenameFunc = filenameFunc,
@@ -181,50 +165,13 @@ class DropshotsTest {
 
   @Test
   fun testFailsForDifferences() {
-    assumeFalse(isRecordingScreenshots)
-
-    var failed = false
-    activityScenarioRule.scenario.onActivity {
-      try {
-        Log.d("!!! TEST !!!", "Asserting snapshot...")
-        dropshots.assertSnapshot(
-          view = it.findViewById(android.R.id.content),
-          name = "MatchesViewScreenshotBad",
-          filePath = "static"
-        )
-        Log.d("!!! TEST !!!", "Snapshot asserted")
-        failed = true
-      } catch (e: AssertionError) {
-        Log.d("!!! TEST !!!", "Snapshot assertion failed as expected.")
-        // pass
-      }
-    }
-
-    Log.d("!!! TEST !!!", "Validating thrown error")
-    if (failed) {
-      fail("Expected error when screenshots differ.")
-    }
-  }
-
-  @Test
-  fun testPassesWhenValidatorPasses() {
-    assumeFalse(isRecordingScreenshots)
-
-    fakeValidator.validator = { true }
-    activityScenarioRule.scenario.onActivity {
-      dropshots.assertSnapshot(
-        view = it.findViewById(android.R.id.content),
-        name = "MatchesViewScreenshotBad",
-        filePath = "static"
-      )
-    }
-  }
-
-  @Test
-  fun testFailsWhenValidatorFails() {
-    assumeFalse(isRecordingScreenshots)
-
-    fakeValidator.validator = { false }
+    val dropshots = Dropshots(
+      resultValidator = CountValidator(0),
+      rootScreenshotDirectory = imageDirectory,
+      filenameFunc = filenameFunc,
+      recordScreenshots = false,
+      imageComparator = SimpleImageComparator(),
+    )
 
     var caughtError: AssertionError? = null
     activityScenarioRule.scenario.onActivity {
@@ -239,28 +186,93 @@ class DropshotsTest {
       }
     }
 
+    assertNotNull("Expected error when screenshots differ.", caughtError)
+  }
+
+  @Test
+  fun testPassesWhenValidatorPasses() {
+    val dropshots = Dropshots(
+      resultValidator = FakeResultValidator { true },
+      rootScreenshotDirectory = imageDirectory,
+      filenameFunc = filenameFunc,
+      recordScreenshots = false,
+      imageComparator = SimpleImageComparator(),
+    )
+
+    activityScenarioRule.scenario.onActivity {
+      val image = Bitmap.createBitmap(50, 50, Bitmap.Config.ARGB_8888)
+      with(Canvas(image)) {
+        drawColor(Color.BLACK)
+      }
+
+      dropshots.assertSnapshot(
+        bitmap = image,
+        name = "50x50",
+        filePath = "static"
+      )
+    }
+  }
+
+  @Test
+  fun testFailsWhenValidatorFails() {
+    val dropshots = Dropshots(
+      resultValidator = FakeResultValidator { false },
+      rootScreenshotDirectory = imageDirectory,
+      filenameFunc = filenameFunc,
+      recordScreenshots = false,
+      imageComparator = SimpleImageComparator(),
+    )
+
+    var caughtError: AssertionError? = null
+    activityScenarioRule.scenario.onActivity {
+      val image = Bitmap.createBitmap(50, 50, Bitmap.Config.ARGB_8888)
+      with(Canvas(image)) {
+        drawColor(Color.BLACK)
+      }
+
+      try {
+        dropshots.assertSnapshot(
+          bitmap = image,
+          name = "50x50",
+          filePath = "static"
+        )
+      } catch (e: AssertionError) {
+        caughtError = e
+      }
+    }
+
     assertNotNull(caughtError)
   }
 
   @Test
   fun fastFailsForMismatchedSize() {
-    assumeFalse(isRecordingScreenshots)
+    val dropshots = Dropshots(
+      resultValidator = CountValidator(0),
+      rootScreenshotDirectory = imageDirectory,
+      filenameFunc = filenameFunc,
+      recordScreenshots = false,
+      imageComparator = SimpleImageComparator(),
+    )
 
-    var failed = false
+    var caughtError: AssertionError? = null
     activityScenarioRule.scenario.onActivity {
+      val image = Bitmap.createBitmap(50, 60, Bitmap.Config.ARGB_8888)
+      with(Canvas(image)) {
+        drawColor(Color.BLACK)
+      }
+
       try {
         dropshots.assertSnapshot(
-          view = it.findViewById(android.R.id.content),
-          name = "MatchesViewScreenshotBadSize",
+          bitmap = image,
+          name = "50x50",
           filePath = "static"
         )
-        failed = true
-      } catch (e: Throwable) {
-        // no op
+      } catch (e: AssertionError) {
+        caughtError = e
       }
     }
 
-    assertFalse("Mismatched size screenshot test expected to fail, but passed.", failed)
+    assertNotNull("Mismatched size screenshot test expected to fail, but passed.", caughtError)
   }
 }
 
