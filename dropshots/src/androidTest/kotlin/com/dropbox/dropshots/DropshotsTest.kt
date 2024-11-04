@@ -5,8 +5,6 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Environment
 import android.view.View
-import android.view.ViewGroup
-import android.widget.LinearLayout
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import com.dropbox.differ.SimpleImageComparator
 import java.io.File
@@ -51,26 +49,6 @@ class DropshotsTest {
         "screenshots/test-${testName.methodName}",
       )
     fakeValidator.validator = CountValidator(0)
-    activityScenarioRule.scenario.onActivity { activity ->
-      activity.setContentView(
-        LinearLayout(activity).apply {
-          orientation = LinearLayout.VERTICAL
-
-          listOf(Color.RED, Color.GREEN, Color.BLUE, Color.CYAN).forEach {
-            addView(
-              View(activity).apply {
-                setBackgroundColor(it)
-                layoutParams = LinearLayout.LayoutParams(
-                  ViewGroup.MarginLayoutParams.MATCH_PARENT,
-                  ViewGroup.MarginLayoutParams.WRAP_CONTENT,
-                  1f
-                )
-              }
-            )
-          }
-        }
-      )
-    }
   }
 
   @After
@@ -82,69 +60,6 @@ class DropshotsTest {
 
   @Test
   fun testMatchesFullScreenshot() {
-    activityScenarioRule.scenario.onActivity {
-      dropshots.assertSnapshot("MatchesFullScreenshot")
-    }
-  }
-
-  @Test
-  fun testMatchesFullScreenshot2() {
-    activityScenarioRule.scenario.onActivity {
-      dropshots.assertSnapshot("MatchesFullScreenshot")
-    }
-  }
-
-  @Test
-  fun testMatchesFullScreenshot3() {
-    activityScenarioRule.scenario.onActivity {
-      dropshots.assertSnapshot("MatchesFullScreenshot")
-    }
-  }
-
-  @Test
-  fun testMatchesFullScreenshot4() {
-    activityScenarioRule.scenario.onActivity {
-      dropshots.assertSnapshot("MatchesFullScreenshot")
-    }
-  }
-
-  @Test
-  fun testMatchesFullScreenshot5() {
-    activityScenarioRule.scenario.onActivity {
-      dropshots.assertSnapshot("MatchesFullScreenshot")
-    }
-  }
-
-  @Test
-  fun testMatchesFullScreenshot6() {
-    activityScenarioRule.scenario.onActivity {
-      dropshots.assertSnapshot("MatchesFullScreenshot")
-    }
-  }
-
-  @Test
-  fun testMatchesFullScreenshot7() {
-    activityScenarioRule.scenario.onActivity {
-      dropshots.assertSnapshot("MatchesFullScreenshot")
-    }
-  }
-
-  @Test
-  fun testMatchesFullScreenshot8() {
-    activityScenarioRule.scenario.onActivity {
-      dropshots.assertSnapshot("MatchesFullScreenshot")
-    }
-  }
-
-  @Test
-  fun testMatchesFullScreenshot9() {
-    activityScenarioRule.scenario.onActivity {
-      dropshots.assertSnapshot("MatchesFullScreenshot")
-    }
-  }
-
-  @Test
-  fun testMatchesFullScreenshot10() {
     activityScenarioRule.scenario.onActivity {
       dropshots.assertSnapshot("MatchesFullScreenshot")
     }
