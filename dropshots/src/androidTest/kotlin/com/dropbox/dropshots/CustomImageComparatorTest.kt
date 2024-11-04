@@ -9,7 +9,6 @@ import com.dropbox.differ.ImageComparator.ComparisonResult
 import com.dropbox.differ.Mask
 import java.io.File
 import org.junit.After
-import org.junit.Assume.assumeFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -72,6 +71,6 @@ class FakeImageComparator(
     ComparisonResult(0, 0, 0, 0)
   }
 ) : ImageComparator {
-  override fun compare(left: Image, right: Image, mask: Mask?): ComparisonResult =
-    compareFunc(left, right, mask)
+  override fun compare(left: Image, right: Image, diff: Mask?): ComparisonResult =
+    compareFunc(left, right, diff)
 }
