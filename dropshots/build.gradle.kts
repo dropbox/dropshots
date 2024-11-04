@@ -106,8 +106,6 @@ android.testVariants.all {
 
       adbCommand("root")
       adbCommand("wait-for-device")
-      adbCommand("shell cmd overlay enable com.android.internal.systemui.navbar.gestural")
-      adbCommand("shell cmd uimode night no")
       adbCommand("shell settings put global sysui_demo_allowed 1")
       adbCommand("shell am broadcast -a com.android.systemui.demo -e command enter")
         .assertNormalExitValue()
