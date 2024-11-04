@@ -157,7 +157,7 @@ android.testVariants.all {
         }
 
         if (pullResult.exitValue == 0) {
-          val fileCount = """^$screenshotDir/?\./: ([0-9]*) files pulled,.*$""".toRegex()
+          val fileCount = """^${screenshotDir.replace(".", "\\.")}/?\./: ([0-9]*) files pulled,.*$""".toRegex()
           val matchResult = fileCount.find(output.toString(Charsets.UTF_8))
           if (matchResult != null && matchResult.groups.size > 1) {
             println("${matchResult.groupValues[1]} screenshots saved at ${outputDir.path}")
