@@ -1,29 +1,39 @@
 package com.dropbox.dropshots
 
+import android.os.Environment
 import android.view.View
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import com.dropbox.differ.Image
 import com.dropbox.differ.ImageComparator
 import com.dropbox.differ.ImageComparator.ComparisonResult
 import com.dropbox.differ.Mask
-import org.junit.Assume.assumeFalse
+import java.io.File
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 class CustomImageComparatorTest {
-  private val isRecordingScreenshots = isRecordingScreenshots()
-
   @get:Rule
   val activityScenarioRule = ActivityScenarioRule(TestActivity::class.java)
 
+  private val imageDirectory = File(
+    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+    "screenshots/custom-image-comparator-test",
+  )
   val comparator = FakeImageComparator()
 
   @get:Rule
-  val dropshots = Dropshots(recordScreenshots = false, imageComparator = comparator)
+  val dropshots = Dropshots(
+    rootScreenshotDirectory = imageDirectory,
+    filenameFunc = defaultFilenameFunc,
+    recordScreenshots = false,
+    imageComparator = comparator,
+    resultValidator = CountValidator(0),
+  )
 
   @Before
-  fun setup() {
+  fun before() {
     activityScenarioRule.scenario.onActivity {
       it.supportFragmentManager.beginTransaction()
         .add(android.R.id.content, ScreenshotTestFragment())
@@ -31,10 +41,13 @@ class CustomImageComparatorTest {
     }
   }
 
+  @After
+  fun after() {
+    imageDirectory.deleteRecursively()
+  }
+
   @Test
   fun imageComparatorIsConfigurable() {
-    assumeFalse(isRecordingScreenshots)
-
     val calls = mutableListOf<Triple<Image, Image, Mask?>>()
     comparator.compareFunc = { left, right, mask ->
       calls.add(Triple(left, right, mask))
@@ -58,6 +71,6 @@ class FakeImageComparator(
     ComparisonResult(0, 0, 0, 0)
   }
 ) : ImageComparator {
-  override fun compare(left: Image, right: Image, mask: Mask?): ComparisonResult =
-    compareFunc(left, right, mask)
+  override fun compare(left: Image, right: Image, diff: Mask?): ComparisonResult =
+    compareFunc(left, right, diff)
 }

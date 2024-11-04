@@ -1,15 +1,14 @@
 [versions]
 kotlin = "1.9.20"
 agp = "8.7.1"
-androidx-core = "1.13.1"
 
 [libraries]
 android = { module = "com.android.tools.build:gradle", version.ref = "agp" }
-androidx-activity = { module = "androidx.activity:activity-ktx", version = "1.9.2" }
-androidx-annotation = { module = "androidx.annotation:annotation", version = "1.8.2" }
+androidx-activity = { module = "androidx.activity:activity-ktx", version = "1.9.3" }
+androidx-annotation = { module = "androidx.annotation:annotation", version = "1.9.0" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version = "1.7.0" }
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version = "2.1.4" }
-androidx-core = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
+androidx-core = { module = "androidx.core:core-ktx", version = "1.13.1" }
 androidx-fragment = { module = "androidx.fragment:fragment-ktx", version = "1.8.4" }
 androidx-test-core = { module = "androidx.test:core-ktx", version = "1.6.1" }
 androidx-test-ext-junit = { module = "androidx.test.ext:junit-ktx", version = "1.2.1" }

@@ -6,11 +6,11 @@ plugins {
 
 android {
   namespace = "com.dropbox.dropshots.sample"
-  compileSdk = 32
+  compileSdk = 35
 
   defaultConfig {
     minSdk = 23
-    targetSdk = 32
+    targetSdk = 35
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -28,9 +28,6 @@ dependencies {
   implementation(libs.androidx.constraintlayout)
 
   androidTestImplementation(libs.junit)
-  androidTestImplementation(libs.androidx.activity)
-  androidTestImplementation(libs.androidx.core)
-  androidTestImplementation(libs.androidx.fragment)
   androidTestImplementation(libs.androidx.test.core)
   androidTestImplementation(libs.androidx.test.ext.junit)
   androidTestImplementation(libs.androidx.test.rules)

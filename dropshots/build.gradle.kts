@@ -27,11 +27,6 @@ android {
   kotlinOptions {
     jvmTarget = "1.8"
   }
-
-  val isRecordingScreenshots = hasProperty("dropshots.record")
-  buildTypes.getByName("debug") {
-    resValue("bool", "is_recording_screenshots", isRecordingScreenshots.toString())
-  }
 }
 
 kotlin {
@@ -69,7 +64,70 @@ mavenPublishing {
 
 val adbExecutablePath = provider { android.adbExecutable.path }
 android.testVariants.all {
+  val screenshotDir = "/storage/emulated/0/Download/screenshots/com.dropbox.dropshots.test"
   val connectedAndroidTest = connectedInstrumentTestProvider
+
+  val recordScreenshotsTask = tasks.register("record${name.capitalize()}Screenshots")
+  val isRecordingScreenshots = project.objects.property(Boolean::class.java)
+  project.gradle.taskGraph.whenReady {
+    isRecordingScreenshots.set(recordScreenshotsTask.map { hasTask(it) })
+  }
+
+  val pushMarkerFileTask = tasks.register("push${name.capitalize()}ScreenshotMarkerFile") {
+    description = "Push screenshot marker file to test device."
+    group = "verification"
+    outputs.upToDateWhen { false }
+    onlyIf { isRecordingScreenshots.get() }
+
+    doLast {
+      val adb = adbExecutablePath.get()
+      project.exec {
+        executable = adb
+        args = listOf("shell", "mkdir", "-p", screenshotDir)
+      }
+      project.exec {
+        executable = adb
+        args = listOf("shell", "touch", "$screenshotDir/.isRecordingScreenshots")
+      }
+    }
+  }
+
+  val setupEmulatorTask = tasks.register("setup${name.capitalize()}ScreenshotEmulator") {
+    description = "Configures the test device for screenshots."
+    group = "verification"
+    doLast {
+      val adb = adbExecutablePath.get()
+      fun adbCommand(cmd: String): ExecResult {
+        return project.exec {
+          executable = adb
+          args = cmd.split(" ")
+        }
+      }
+
+      adbCommand("root")
+      adbCommand("wait-for-device")
+      adbCommand("shell settings put global sysui_demo_allowed 1")
+      adbCommand("shell am broadcast -a com.android.systemui.demo -e command enter")
+        .assertNormalExitValue()
+      adbCommand("shell am broadcast -a com.android.systemui.demo -e command clock -e hhmm 1234")
+      adbCommand("shell am broadcast -a com.android.systemui.demo -e command battery -e plugged false")
+      adbCommand("shell am broadcast -a com.android.systemui.demo -e command battery -e level 100")
+      adbCommand("shell am broadcast -a com.android.systemui.demo -e command network -e wifi show -e level 4")
+      adbCommand("shell am broadcast -a com.android.systemui.demo -e command network -e mobile show -e datatype none -e level 4")
+      adbCommand("shell am broadcast -a com.android.systemui.demo -e command notifications -e visible false")
+    }
+  }
+  val restoreEmulatorTask = tasks.register("restore${name.capitalize()}ScreenshotEmulator") {
+    description = "Restores the test device from screenshot mode."
+    group = "verification"
+    doLast {
+      project.exec {
+        executable = adbExecutablePath.get()
+        args = "shell am broadcast -a com.android.systemui.demo -e command exit".split(" ")
+      }
+    }
+  }
+
   val pullScreenshotsTask = tasks.register("pull${name.capitalize()}Screenshots") {
     description = "Pull screenshots from the test device."
     group = "verification"
@@ -77,41 +135,50 @@ android.testVariants.all {
     outputs.upToDateWhen { false }
 
     doLast {
-      val outputDir = outputs.files.getSingleFile()
+      val outputDir = outputs.files.singleFile
       outputDir.mkdirs()
 
       val adb = adbExecutablePath.get()
-      val dir = "/storage/emulated/0/Download/screenshots/com.dropbox.dropshots.test"
       val checkResult = project.exec {
         executable = adb
-        args = listOf("shell", "test", "-d", dir)
+        args = listOf("shell", "test", "-d", screenshotDir)
         isIgnoreExitValue = true
       }
 
       if (checkResult.exitValue == 0) {
         val output = ByteArrayOutputStream()
-        project.exec {
+        val pullResult = project.exec {
           executable = adb
-          args = listOf("pull", "$dir/.", outputDir.path)
+          args = listOf("pull", "$screenshotDir/.", outputDir.path)
           standardOutput = output
+          isIgnoreExitValue = true
         }
 
-        val fileCount = """^$dir/?\./: ([0-9]*) files pulled,.*$""".toRegex()
-        val matchResult = fileCount.find(output.toString(Charsets.UTF_8))
-        if (matchResult != null && matchResult.groups.size > 1) {
-          println("${matchResult.groupValues[1]} screenshots saved at ${outputDir.path}")
+        if (pullResult.exitValue == 0) {
+          val fileCount = """^${screenshotDir.replace(".", "\\.")}/?\./: ([0-9]*) files pulled,.*$""".toRegex()
+          val matchResult = fileCount.find(output.toString(Charsets.UTF_8))
+          if (matchResult != null && matchResult.groups.size > 1) {
+            println("${matchResult.groupValues[1]} screenshots saved at ${outputDir.path}")
+          } else {
+            println("Unknown result executing adb: $adb pull $screenshotDir/. ${outputDir.path}")
+            print(output.toString(Charsets.UTF_8))
+          }
         } else {
-          println("Unknown result executing adb: $adb pull $dir/. ${outputDir.path}")
-          print(output.toString(Charsets.UTF_8))
+          println("Failed to pull screenshots.")
         }
 
         project.exec {
           executable = adb
-          args = listOf("shell", "rm", "-r", dir)
+          args = listOf("shell", "rm", "-r", "/storage/emulated/0/Download/screenshots")
         }
       }
     }
   }
 
-  connectedAndroidTest.configure { finalizedBy(pullScreenshotsTask) }
+  connectedAndroidTest.configure {
+    dependsOn(pushMarkerFileTask)
+    finalizedBy(pullScreenshotsTask)
+    dependsOn(setupEmulatorTask)
+    finalizedBy(restoreEmulatorTask)
+  }
 }

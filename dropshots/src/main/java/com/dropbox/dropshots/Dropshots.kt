@@ -21,34 +21,42 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
-public class Dropshots(
-  /**
-   * Function to create a filename from a snapshot name (i.e. the name provided when taking
-   * the snapshot).
-   */
-  private val filenameFunc: (String) -> String = defaultFilenameFunc,
-  /**
-   * Indicates whether new reference screenshots should be recorded. Otherwise Dropshots performs
-   * validation of test screenshots against reference screenshots.
-   */
-  private val recordScreenshots: Boolean = isRecordingScreenshots(),
-  /**
-   * The `ImageComparator` used to compare test and reference screenshots.
-   */
-  private val imageComparator: ImageComparator = SimpleImageComparator(maxDistance = 0.004f),
-  /**
-   * The `ResultValidator` used to validate the comparison results.
-   */
-  private val resultValidator: ResultValidator = CountValidator(0)
+public class Dropshots internal constructor(
+  private val rootScreenshotDirectory: File,
+  private val filenameFunc: (String) -> String,
+  private val recordScreenshots: Boolean,
+  private val imageComparator: ImageComparator,
+  private val resultValidator: ResultValidator,
 ) : TestRule {
   private val context = InstrumentationRegistry.getInstrumentation().context
-  private val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
   private var fqName: String = ""
   private var packageName: String = ""
   private var className: String = ""
   private var testName: String = ""
 
   private val snapshotName: String get() = testName
+
+  @JvmOverloads
+  public constructor(
+    /**
+     * Function to create a filename from a snapshot name (i.e. the name provided when taking
+     * the snapshot).
+     */
+    filenameFunc: (String) -> String = defaultFilenameFunc,
+    /**
+     * Indicates whether new reference screenshots should be recorded. Otherwise Dropshots performs
+     * validation of test screenshots against reference screenshots.
+     */
+    recordScreenshots: Boolean = isRecordingScreenshots(defaultRootScreenshotDirectory()),
+    /**
+     * The `ImageComparator` used to compare test and reference screenshots.
+     */
+    imageComparator: ImageComparator = SimpleImageComparator(maxDistance = 0.004f),
+    /**
+     * The `ResultValidator` used to validate the comparison results.
+     */
+    resultValidator: ResultValidator = CountValidator(0),
+  ): this(defaultRootScreenshotDirectory(), filenameFunc, recordScreenshots, imageComparator, resultValidator)
 
   override fun apply(base: Statement, description: Description): Statement {
     fqName = description.className
@@ -119,30 +127,29 @@ public class Dropshots(
         BitmapFactory.decodeStream(it)
       }
     } catch (e: FileNotFoundException) {
-      if (recordScreenshots) {
-        writeImage(filename, filePath, bitmap)
-        return
-      } else {
+      writeReferenceImage(filename, filePath, bitmap)
+
+      if (!recordScreenshots) {
         throw IllegalStateException(
           "Failed to find reference image named /$filename.png at path $filePath . " +
             "If this is a new test, you may need to record screenshots by adding `dropshots.record=true` to your gradle.properties file, or gradlew with `-Pdropshots.record`.",
           e
         )
       }
+
+      return
     }
 
     if (bitmap.width != reference.width || bitmap.height != reference.height) {
-      if (recordScreenshots) {
-        writeImage(filename, filePath, bitmap)
-        return
-      } else {
-        writeThen(filename, filePath, reference, bitmap, null) { outputPath ->
-          AssertionError(
-            "$name: Test image (w=${bitmap.width}, h=${bitmap.height}) differs in size" +
-              " from reference image (w=${reference.width}, h=${reference.height}).\n" +
-              "Output written to: $outputPath"
-          )
-        }
+      writeReferenceImage(filename, filePath, bitmap)
+
+      if (!recordScreenshots) {
+        val outputPath = writeDiffImage(filename, filePath, bitmap, reference, null)
+        throw AssertionError(
+          "$name: Test image (w=${bitmap.width}, h=${bitmap.height}) differs in size" +
+            " from reference image (w=${reference.width}, h=${reference.height}).\n" +
+            "Diff written to: $outputPath",
+        )
       }
     }
 
@@ -150,64 +157,69 @@ public class Dropshots(
     val result = try {
       imageComparator.compare(BitmapImage(reference), BitmapImage(bitmap), mask)
     } catch (e: IllegalArgumentException) {
-      writeThen(filename, filePath, reference, bitmap, mask) {
-        IllegalArgumentException(
+      writeReferenceImage(filename, filePath, bitmap)
+
+      if (!recordScreenshots) {
+        val outputPath = writeDiffImage(filename, filePath, bitmap, reference, mask)
+        throw AssertionError(
           "Failed to compare images: reference{width=${reference.width}, height=${reference.height}} " +
-            "<> bitmap{width=${bitmap.width}, height=${bitmap.height}}\n" +
-            "Output written to: $it",
-          e
+          "<> bitmap{width=${bitmap.width}, height=${bitmap.height}}\n" +
+          "Diff written to: $outputPath",
+          e,
         )
       }
+
       return
     }
 
     // Assert
     if (!resultValidator(result)) {
-      writeThen(filename, filePath, reference, bitmap, mask) {
-        AssertionError(
+      writeReferenceImage(filename, filePath, bitmap)
+
+      if (!recordScreenshots) {
+        val outputPath = writeDiffImage(filename, filePath, bitmap, reference, mask)
+        throw AssertionError(
           "\"$name\" failed to match reference image. ${result.pixelDifferences} pixels differ " +
             "(${(result.pixelDifferences / result.pixelCount.toFloat()) * 100} %)\n" +
-            "Output written to: $it"
+            "Output written to: $outputPath"
         )
       }
     }
   }
 
   /**
-   * Writes the test image if recording screenshots, otherwise creates and
-   * writes a diff, then throws the resulting throwable.
+   * Writes the given screenshot to the external reference image directory, returning the
+   * file path of the file that was written.
    */
-  private fun writeThen(
-    filename: String,
-    filePath: String?,
-    referenceImage: Bitmap,
-    testImage: Bitmap,
-    mask: Mask?,
-    message: (outputFilePath: String) -> Throwable
-  ) {
-    if (recordScreenshots) {
-      writeImage(filename, filePath, testImage)
-    } else {
-      val diffImage = generateDiffImage(referenceImage, testImage, mask)
-      val outputFilePath = writeImage(filename, filePath, diffImage)
-      throw message(outputFilePath)
-    }
+  private fun writeReferenceImage(name: String, filePath: String?, screenshot: Bitmap): String {
+    val screenshotFolder = File(rootScreenshotDirectory, "reference".appendPath(filePath))
+    return writeImage(screenshotFolder, name, screenshot)
   }
 
   /**
-   * Writes the given screenshot to the external storage directory.
+   * Writes the given screenshot to the external reference image directory, returning the
+   * file path of the file that was written.
    */
-  private fun writeImage(name: String, filePath: String?, screenshot: Bitmap): String {
-    val externalStorageDir = Environment
-      .getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-    val screenFolder = File(externalStorageDir, "screenshots/${targetContext.packageName}".appendPath(filePath))
-    if (!screenFolder.exists() && !screenFolder.mkdirs()) {
+  private fun writeDiffImage(
+    name: String,
+    filePath: String?,
+    screenshot: Bitmap,
+    referenceImage: Bitmap,
+    mask: Mask?
+  ): String {
+    val screenshotFolder = File(rootScreenshotDirectory, "diff".appendPath(filePath))
+    val diffImage = generateDiffImage(referenceImage, screenshot, mask)
+    return writeImage(screenshotFolder, name, diffImage)
+  }
+
+  private fun writeImage(dir: File, name: String, image: Bitmap): String {
+    if (!dir.exists() && !dir.mkdirs()) {
       throw IllegalStateException("Unable to create screenshot storage directory.")
     }
 
-    val file = File(screenFolder, "${name.replace(" ", "_")}.png")
+    val file = File(dir, "${name.replace(" ", "_")}.png")
     file.outputStream().use {
-      screenshot.compress(Bitmap.CompressFormat.PNG, 100, it)
+      image.compress(Bitmap.CompressFormat.PNG, 100, it)
     }
     return file.absolutePath
   }
@@ -256,18 +268,20 @@ public class Dropshots(
   }
 }
 
+internal fun defaultRootScreenshotDirectory(): File {
+  val context = InstrumentationRegistry.getInstrumentation().targetContext
+  val externalStorageDir = Environment
+    .getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+  return File(externalStorageDir, "screenshots/${context.packageName}")
+}
+
 /**
  * Reads the target application's `is_recording_screenshots` boolean resource to determine if
  * Dropshots should record screenshots or validate them.
  */
-internal fun isRecordingScreenshots(): Boolean {
-  val context = InstrumentationRegistry.getInstrumentation().targetContext
-  val resId = context.resources.getIdentifier(
-    "is_recording_screenshots",
-    "bool",
-    context.packageName
-  )
-  return if (resId == 0) false else context.resources.getBoolean(resId)
+internal fun isRecordingScreenshots(rootScreenshotDirectory: File): Boolean {
+  val markerFile = File(rootScreenshotDirectory, ".isRecordingScreenshots")
+  return markerFile.exists()
 }
 
 /**
