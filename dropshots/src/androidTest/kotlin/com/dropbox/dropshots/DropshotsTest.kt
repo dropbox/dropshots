@@ -88,6 +88,69 @@ class DropshotsTest {
   }
 
   @Test
+  fun testMatchesFullScreenshot2() {
+    activityScenarioRule.scenario.onActivity {
+      dropshots.assertSnapshot("MatchesFullScreenshot")
+    }
+  }
+
+  @Test
+  fun testMatchesFullScreenshot3() {
+    activityScenarioRule.scenario.onActivity {
+      dropshots.assertSnapshot("MatchesFullScreenshot")
+    }
+  }
+
+  @Test
+  fun testMatchesFullScreenshot4() {
+    activityScenarioRule.scenario.onActivity {
+      dropshots.assertSnapshot("MatchesFullScreenshot")
+    }
+  }
+
+  @Test
+  fun testMatchesFullScreenshot5() {
+    activityScenarioRule.scenario.onActivity {
+      dropshots.assertSnapshot("MatchesFullScreenshot")
+    }
+  }
+
+  @Test
+  fun testMatchesFullScreenshot6() {
+    activityScenarioRule.scenario.onActivity {
+      dropshots.assertSnapshot("MatchesFullScreenshot")
+    }
+  }
+
+  @Test
+  fun testMatchesFullScreenshot7() {
+    activityScenarioRule.scenario.onActivity {
+      dropshots.assertSnapshot("MatchesFullScreenshot")
+    }
+  }
+
+  @Test
+  fun testMatchesFullScreenshot8() {
+    activityScenarioRule.scenario.onActivity {
+      dropshots.assertSnapshot("MatchesFullScreenshot")
+    }
+  }
+
+  @Test
+  fun testMatchesFullScreenshot9() {
+    activityScenarioRule.scenario.onActivity {
+      dropshots.assertSnapshot("MatchesFullScreenshot")
+    }
+  }
+
+  @Test
+  fun testMatchesFullScreenshot10() {
+    activityScenarioRule.scenario.onActivity {
+      dropshots.assertSnapshot("MatchesFullScreenshot")
+    }
+  }
+
+  @Test
   fun testMatchesActivityScreenshot() {
     activityScenarioRule.scenario.onActivity {
       dropshots.assertSnapshot(it, "MatchesActivityScreenshot")

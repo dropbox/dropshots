@@ -138,7 +138,10 @@ jobs:
         id: screenshotspull
         continue-on-error: true
         if: steps.screenshotsverify.outcome == 'failure' && github.event_name == 'pull_request'
-        run: cp dropshots/build/reports/androidTests/dropshots/reference/*.png dropshots/src/androidTest/assets/
+        run: |
+          echo "Pulling $(ls -1q dropshots/build/reports/androidTests/dropshots/reference/*.png | wc -l) files..."
+          ls -1q dropshots/build/reports/androidTests/dropshots/reference/*.png
+          cp dropshots/build/reports/androidTests/dropshots/reference/*.png dropshots/src/androidTest/assets/
 
       # Since commits from actions don't trigger new actions, we validate the new screenshots here
       # before we commit them to ensure there isn't flakiness in the tests.
