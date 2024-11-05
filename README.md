@@ -140,7 +140,7 @@ interact with the emulator or use esoteric `adb` commands.
 > same way as the emulators on which you'll validate the screenshots.
 
 ```shell
-./gradlew :path:to:module:recordDebugScreenshots
+./gradlew :path:to:module:recordDebugAndroidTestScreenshots
 ```
 
 After running this command, you'll see that all reference screenshots for the module will have been
