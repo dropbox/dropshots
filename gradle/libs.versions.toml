@@ -27,6 +27,6 @@ dokka = { id = "org.jetbrains.dokka", version = "1.9.20" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version = "11.4.2" }
-mavenPublish = { id = "com.vanniktech.maven.publish.base", version = "0.29.0" }
+mavenPublish = { id = "com.vanniktech.maven.publish.base", version = "0.30.0" }
 binaryCompatibilityValidator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.13.0" }
 
