@@ -2,6 +2,9 @@ import com.android.build.gradle.tasks.SourceJarTask
 import com.vanniktech.maven.publish.GradlePlugin
 import com.vanniktech.maven.publish.JavadocJar.Dokka
 import org.gradle.jvm.tasks.Jar
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -62,11 +65,10 @@ tasks.named("compileKotlin").configure {
 }
 
 tasks.withType<KotlinCompile>().configureEach {
-  kotlinOptions {
-    jvmTarget = "11"
-    // Because Gradle's Kotlin handling is stupid, this falls out of date quickly
-    apiVersion = "1.5"
-    languageVersion = "1.5"
+  compilerOptions {
+    jvmTarget.set(JvmTarget.JVM_11)
+    apiVersion.set(KotlinVersion.KOTLIN_1_8)
+    languageVersion.set(KotlinVersion.KOTLIN_1_8)
   }
 }
 

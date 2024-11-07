@@ -1,5 +1,6 @@
 import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
 import java.io.ByteArrayOutputStream
+import java.util.Locale
 
 plugins {
   alias(libs.plugins.android.library)
@@ -66,14 +67,15 @@ val adbExecutablePath = provider { android.adbExecutable.path }
 android.testVariants.all {
   val screenshotDir = "/storage/emulated/0/Download/screenshots/com.dropbox.dropshots.test"
   val connectedAndroidTest = connectedInstrumentTestProvider
+  val variantSlug = name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
 
-  val recordScreenshotsTask = tasks.register("record${name.capitalize()}Screenshots")
+  val recordScreenshotsTask = tasks.register("record${variantSlug}Screenshots")
   val isRecordingScreenshots = project.objects.property(Boolean::class.java)
   project.gradle.taskGraph.whenReady {
     isRecordingScreenshots.set(recordScreenshotsTask.map { hasTask(it) })
   }
 
-  val pushMarkerFileTask = tasks.register("push${name.capitalize()}ScreenshotMarkerFile") {
+  val pushMarkerFileTask = tasks.register("push${variantSlug}ScreenshotMarkerFile") {
     description = "Push screenshot marker file to test device."
     group = "verification"
     outputs.upToDateWhen { false }
@@ -92,7 +94,7 @@ android.testVariants.all {
     }
   }
 
-  val setupEmulatorTask = tasks.register("setup${name.capitalize()}ScreenshotEmulator") {
+  val setupEmulatorTask = tasks.register("setup${variantSlug}ScreenshotEmulator") {
     description = "Configures the test device for screenshots."
     group = "verification"
     doLast {
@@ -117,7 +119,7 @@ android.testVariants.all {
       adbCommand("shell am broadcast -a com.android.systemui.demo -e command notifications -e visible false")
     }
   }
-  val restoreEmulatorTask = tasks.register("restore${name.capitalize()}ScreenshotEmulator") {
+  val restoreEmulatorTask = tasks.register("restore${variantSlug}ScreenshotEmulator") {
     description = "Restores the test device from screenshot mode."
     group = "verification"
     doLast {
@@ -128,7 +130,7 @@ android.testVariants.all {
     }
   }
 
-  val pullScreenshotsTask = tasks.register("pull${name.capitalize()}Screenshots") {
+  val pullScreenshotsTask = tasks.register("pull${variantSlug}Screenshots") {
     description = "Pull screenshots from the test device."
     group = "verification"
     outputs.dir(project.layout.buildDirectory.dir("reports/androidTests/dropshots"))
