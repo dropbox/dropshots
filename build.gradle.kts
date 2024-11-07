@@ -26,6 +26,15 @@ allprojects {
 
       pomFromGradleProperties()
     }
+
+    publishing {
+      repositories {
+        maven {
+          name = "projectLocalMaven"
+          url = uri(rootProject.layout.buildDirectory.dir("localMaven"))
+        }
+      }
+    }
   }
 }
 

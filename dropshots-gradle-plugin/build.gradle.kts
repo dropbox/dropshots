@@ -114,3 +114,7 @@ tasks.register("printVersionName") {
     println(VERSION_NAME)
   }
 }
+
+tasks.withType<Test>().configureEach {
+  dependsOn(":dropshots:publishMavenPublicationToProjectLocalMavenRepository")
+}
