@@ -15,7 +15,7 @@ androidx-test-runner = { module = "androidx.test:runner", version = "1.6.2" }
 androidx-test-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version = "2.3.0" }
 differ = "com.dropbox.differ:differ:0.3.0"
 junit = "junit:junit:4.13.2"
-truth = "com.google.truth:truth:1.4.2"
+truth = "com.google.truth:truth:1.4.4"
 kotlin-bom = { module = "org.jetbrains.kotlin:kotlin-bom", version.ref = "kotlin" }
 kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
