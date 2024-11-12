@@ -40,7 +40,6 @@ allprojects {
 
 tasks.register("printVersionName") {
   doLast {
-    val VERSION_NAME: String by project
-    println(VERSION_NAME)
+    println(project.property("VERSION_NAME"))
   }
 }
