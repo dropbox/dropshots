@@ -1,8 +1,30 @@
 pluginManagement {
   repositories {
-    gradlePluginPortal()
+    google {
+      @Suppress("UnstableApiUsage")
+      mavenContent {
+        includeGroupAndSubgroups("androidx")
+        includeGroupAndSubgroups("com.android")
+        includeGroupAndSubgroups("com.google")
+      }
+    }
     mavenCentral()
-    google()
+    gradlePluginPortal()
+  }
+}
+
+dependencyResolutionManagement {
+  @Suppress("UnstableApiUsage")
+  repositories {
+    google {
+      @Suppress("UnstableApiUsage")
+      mavenContent {
+        includeGroupAndSubgroups("androidx")
+        includeGroupAndSubgroups("com.android")
+        includeGroupAndSubgroups("com.google")
+      }
+    }
+    mavenCentral()
   }
 }
 

@@ -1,0 +1,31 @@
+public final class com/dropbox/dropshots/model/TestRunConfig {
+	public static final field Companion Lcom/dropbox/dropshots/model/TestRunConfig$Companion;
+	public fun <init> (ZLjava/lang/String;)V
+	public final fun component1 ()Z
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (ZLjava/lang/String;)Lcom/dropbox/dropshots/model/TestRunConfig;
+	public static synthetic fun copy$default (Lcom/dropbox/dropshots/model/TestRunConfig;ZLjava/lang/String;ILjava/lang/Object;)Lcom/dropbox/dropshots/model/TestRunConfig;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDeviceName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isRecording ()Z
+	public fun toString ()Ljava/lang/String;
+	public final fun write (Ljava/io/OutputStream;)V
+}
+
+public final class com/dropbox/dropshots/model/TestRunConfig$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lcom/dropbox/dropshots/model/TestRunConfig$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcom/dropbox/dropshots/model/TestRunConfig;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcom/dropbox/dropshots/model/TestRunConfig;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/dropbox/dropshots/model/TestRunConfig$Companion {
+	public final fun read (Ljava/io/InputStream;)Lcom/dropbox/dropshots/model/TestRunConfig;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+

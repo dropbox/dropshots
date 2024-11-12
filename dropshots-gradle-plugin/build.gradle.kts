@@ -15,32 +15,13 @@ plugins {
   alias(libs.plugins.binaryCompatibilityValidator)
 }
 
-buildscript {
-  repositories {
-    mavenCentral()
-    gradlePluginPortal()
-  }
-}
-
-repositories {
-  mavenCentral()
-  gradlePluginPortal()
-}
-
-sourceSets {
-  main.configure {
-    java.srcDir("src/generated/kotlin")
-  }
-}
-
 mavenPublishing {
   configure(GradlePlugin(Dokka("dokkaJavadoc")))
 }
 
 val generateVersionTask = tasks.register("generateVersion") {
   inputs.property("version", project.property("VERSION_NAME") as String)
-  outputs.dir(project.layout.projectDirectory.dir("src/generated/kotlin"))
-
+  outputs.dir(project.layout.buildDirectory.dir("generated/version/kotlin"))
   doLast {
     val output = File(outputs.files.first(), "com/dropbox/dropshots/Version.kt")
     output.parentFile.mkdirs()
@@ -52,28 +33,8 @@ val generateVersionTask = tasks.register("generateVersion") {
   }
 }
 
-tasks.withType<Jar>().configureEach {
-  dependsOn(generateVersionTask)
-}
-
-tasks.named("dokkaJavadoc").configure {
-  dependsOn(generateVersionTask)
-}
-
-tasks.named("compileKotlin").configure {
-  dependsOn(generateVersionTask)
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-  compilerOptions {
-    jvmTarget.set(JvmTarget.JVM_11)
-    apiVersion.set(KotlinVersion.KOTLIN_1_8)
-    languageVersion.set(KotlinVersion.KOTLIN_1_8)
-  }
-}
-
-tasks.withType<JavaCompile>().configureEach {
-  options.release.set(11)
+sourceSets.main {
+  java.srcDir(generateVersionTask)
 }
 
 kotlin {
@@ -94,7 +55,7 @@ val releaseMode = hasProperty("dropshots.releaseMode")
 dependencies {
   compileOnly(gradleApi())
   implementation(platform(libs.kotlin.bom))
-  implementation(projects.model)
+  implementation(project(":model"))
 
   // Don't impose our version of KGP on consumers
   if (releaseMode) {
