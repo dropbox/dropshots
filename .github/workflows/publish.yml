@@ -158,7 +158,7 @@ jobs:
           script: ./gradlew connectedCheck --stacktrace
 
       - name: Push new screenshots if available
-        uses: stefanzweifel/git-auto-commit-action@4b8a201e31cadd9829df349894b28c54e6c19fe6 # v5.0.1
+        uses: stefanzweifel/git-auto-commit-action@8621497c8c39c72f3e2a999a26b4ca1b5058a842 # v5.0.1
         if: steps.screenshotspull.outcome == 'success'
         with:
           file_pattern: '*/*.png'
