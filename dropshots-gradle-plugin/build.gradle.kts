@@ -55,7 +55,10 @@ val releaseMode = hasProperty("dropshots.releaseMode")
 dependencies {
   compileOnly(gradleApi())
   implementation(platform(libs.kotlin.bom))
-  implementation(project(":model"))
+  implementation(libs.android.builder.test)
+  implementation(libs.android.common)
+  implementation(libs.android.ddmlib)
+  implementation(projects.model)
 
   // Don't impose our version of KGP on consumers
   if (releaseMode) {

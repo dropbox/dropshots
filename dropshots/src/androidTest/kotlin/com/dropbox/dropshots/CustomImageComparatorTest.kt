@@ -25,7 +25,6 @@ class CustomImageComparatorTest {
 
   @get:Rule
   val dropshots = Dropshots(
-    rootScreenshotDirectory = imageDirectory,
     filenameFunc = defaultFilenameFunc,
     recordScreenshots = false,
     imageComparator = comparator,

@@ -1,0 +1,3 @@
+package com.dropbox.dropshots
+
+public const val configFileName: String = "dropbox-config.json"
