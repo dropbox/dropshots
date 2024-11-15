@@ -1,13 +1,12 @@
 package com.dropbox.dropshots
 
 import com.android.build.api.variant.AndroidComponentsExtension
+import com.android.build.api.variant.DeviceTest
 import com.android.build.api.variant.DeviceTestBuilder
 import com.android.build.api.variant.HasDeviceTests
 import com.android.build.api.variant.Variant
 import com.android.build.gradle.TestedExtension
 import com.android.build.gradle.api.AndroidBasePlugin
-import com.android.build.gradle.api.ApkVariant
-import com.android.build.gradle.internal.tasks.AndroidTestTask
 import com.android.build.gradle.internal.tasks.DeviceProviderInstrumentTestTask
 import com.android.build.gradle.internal.tasks.ManagedDeviceInstrumentationTestTask
 import com.android.build.gradle.internal.tasks.ManagedDeviceTestTask
@@ -15,15 +14,12 @@ import com.android.build.gradle.internal.tasks.factory.dependsOn
 import com.android.build.gradle.options.BooleanOption
 import com.android.build.gradle.options.ProjectOptionService
 import com.android.builder.core.ComponentType
-import com.dropbox.dropshots.model.TestRunConfig
 import java.io.File
-import java.util.Locale
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.file.RegularFile
-import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.provider.Provider
+import org.gradle.internal.configuration.problems.taskPathFrom
 
 private const val recordScreenshotsArg = "dropshots.record"
 
@@ -47,34 +43,20 @@ public class DropshotsPlugin : Plugin<Project> {
       val componentsExtension = extensions.getByType(AndroidComponentsExtension::class.java)
       val testedExtension = extensions.getByType(TestedExtension::class.java)
 
-      //check this to have resource based on flavours
-      val androidTestSourceSet = testedExtension.sourceSets.findByName("androidTest")
-        ?: throw Exception("Failed to find androidTest source set")
-
-      // TODO configure this via extension
-      val referenceScreenshotDirectory = layout.projectDirectory.dir("src/androidTest/screenshots")
-
-      androidTestSourceSet.assets {
-        srcDirs(referenceScreenshotDirectory)
-      }
-
       @Suppress("UnstableApiUsage")
       componentsExtension.onVariants { variant ->
         if (!variant.debuggable || variant !is HasDeviceTests) {
           return@onVariants
         }
 
-        logger.warn("Found testable variant: ${variant.name}")
-
-        val variantName = variant.name
         val deviceTestComponent = variant.deviceTests[DeviceTestBuilder.ANDROID_TEST_TYPE] ?: return@onVariants
         val adbProvider = provider { testedExtension.adbExecutable }
 
         // Create a test connected check task
-        addTasksForDeviceProvider(variant, "connected", adbProvider)
+        addTasksForDeviceProvider(variant, deviceTestComponent, "connected", adbProvider)
 
         testedExtension.deviceProviders.forEach { deviceProvider ->
-          addTasksForDeviceProvider(variant, deviceProvider.name, adbProvider)
+          addTasksForDeviceProvider(variant, deviceTestComponent, deviceProvider.name, adbProvider)
         }
 
         val optionService = ProjectOptionService.RegistrationAction(this).execute().get()
@@ -85,17 +67,15 @@ public class DropshotsPlugin : Plugin<Project> {
 
   private fun Project.addTasksForDeviceProvider(
     variant: Variant,
+    deviceTest: DeviceTest,
     deviceProviderName: String,
     adbProvider: Provider<File>,
   ) {
-
     tasks
       .named {
         it == "${deviceProviderName}${variant.name.capitalize()}${ComponentType.ANDROID_TEST_SUFFIX}"
       }
       .all { testTask ->
-        val testSlug  = testTask.name.capitalize()
-
         val testDataProvider = when (testTask) {
           is DeviceProviderInstrumentTestTask -> testTask.testData
           is ManagedDeviceInstrumentationTestTask -> testTask.testData
@@ -103,7 +83,7 @@ public class DropshotsPlugin : Plugin<Project> {
           else -> return@all
         }
         val defaultTestOutputDirectory = layout.buildDirectory
-          .dir("outputs/androidTest-results/dropshots/${variant.name}/$deviceProviderName/")
+          .dir("outputs/androidTest-results/$deviceProviderName/${variant.name}")
         val additionalTestOutputEnabled = when (testTask) {
           is DeviceProviderInstrumentTestTask -> testTask.additionalTestOutputEnabled
           is ManagedDeviceInstrumentationTestTask -> testTask.getAdditionalTestOutputEnabled()
@@ -123,8 +103,16 @@ public class DropshotsPlugin : Plugin<Project> {
               }
             }
           }
-        val referenceImageResultDir = additionalTestOutputDir.map { it.dir("dropshots/reference") }
-        val referenceImageSourceDir = layout.projectDirectory.dir("src/${variant.name}/androidTest/screenshots/$deviceProviderName")
+
+        val addReferenceAssetsTask = tasks.register(
+          "generate${testTask.name.capitalize()}ReferenceScreenshots",
+          GenerateReferenceScreenshotsTask::class.java
+        ) { task ->
+          task.referenceImageDir.set(layout.projectDirectory.dir("src/androidTest/screenshots"))
+          task.outputDir.set(layout.buildDirectory.dir("generated/dropshots/reference"))
+        }
+        logger.warn("Adding generated assets to: ${variant.sources.assets}")
+        deviceTest.sources.assets?.addGeneratedSourceDirectory(addReferenceAssetsTask) { task -> task.outputDir }
 
         val updateTaskProvider = tasks.register(
           "update${testTask.name.capitalize()}Screenshots",
@@ -136,14 +124,22 @@ public class DropshotsPlugin : Plugin<Project> {
             it.description = "Updates screenshots for ${variant.name} using provider: ${deviceProviderName.capitalize()}"
           }
           it.group = JavaBasePlugin.VERIFICATION_GROUP
-          it.referenceImageDir.set(referenceImageResultDir)
-          it.outputDir.set(referenceImageSourceDir)
+          it.referenceImageDir.set(additionalTestOutputDir)
+          it.deviceProviderName.set(deviceProviderName)
+          it.outputDir.set(layout.projectDirectory.dir("src/androidTest/screenshots/"))
         }
-        updateTaskProvider.dependsOn(testTask.name)
+        tasks.named("updateDropshotsScreenshots").dependsOn(updateTaskProvider)
 
         val isRecordingScreenshots = project.objects.property(Boolean::class.java)
         project.gradle.taskGraph.whenReady { graph ->
           isRecordingScreenshots.set(updateTaskProvider.map { graph.hasTask(it) })
+        }
+
+        // additional test output will be overwritten by the test task, so we need to use our own
+        // input directory to send information to the device.
+        val remoteDirProvider = testDataProvider.map { testData ->
+          @Suppress("SdCardPath")
+          "/sdcard/Android/media/${testData.instrumentationTargetPackageId.get()}/dropshots"
         }
 
         val writeConfigTaskProvider = tasks.register(
@@ -151,109 +147,25 @@ public class DropshotsPlugin : Plugin<Project> {
           WriteConfigFileTask::class.java,
         ) { task ->
           task.group = JavaBasePlugin.VERIFICATION_GROUP
-          task.getIsRecording.set(isRecordingScreenshots)
+          task.recordingScreenshots.set(isRecordingScreenshots)
+          task.deviceProviderName.set(deviceProviderName)
           task.adbExecutable.set(adbProvider)
-          task.remoteDir.set(
-            testDataProvider.map { testData ->
-              @Suppress("SdCardPath")
-              "/sdcard/Android/media/${testData.instrumentationTargetPackageId.get()}/additional_test_output/dropbox"
-            },
-          )
+          task.remoteDir.set(remoteDirProvider)
         }
         testTask.dependsOn(writeConfigTaskProvider)
-      }
-  }
 
-  private fun Project.configureDropshots(extension: TestedExtension) {
-    project.afterEvaluate {
-      it.dependencies.add(
-        "androidTestImplementation",
-        "com.dropbox.dropshots:dropshots:$VERSION"
-      )
-    }
-
-    //check this to have resource based on flavours
-    val androidTestSourceSet = extension.sourceSets.findByName("androidTest")
-      ?: throw Exception("Failed to find androidTest source set")
-
-    // TODO configure this via extension
-    val referenceScreenshotDirectory = layout.projectDirectory.dir("src/androidTest/screenshots")
-
-    androidTestSourceSet.assets {
-      srcDirs(referenceScreenshotDirectory)
-    }
-
-    val adbExecutablePath = provider { extension.adbExecutable.path }
-    extension.testVariants.all { variant ->
-      val testTaskProvider = variant.connectedInstrumentTestProvider
-      val variantSlug = variant.name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-
-      val screenshotDir = provider {
-        val appId = if (variant.testedVariant is ApkVariant) {
-          variant.testedVariant.applicationId
-        } else {
-          variant.packageApplicationProvider.get().applicationId
-          variant.applicationId
+        val pullScreenshotsTask = tasks.register(
+          "pull${testTask.name.capitalize()}Screenshots",
+          PullScreenshotsTask::class.java,
+        ) { task ->
+          task.onlyIf { !additionalTestOutputEnabled.get() }
+          task.group = JavaBasePlugin.VERIFICATION_GROUP
+          task.adbExecutable.set(adbProvider)
+          task.remoteDir.set(remoteDirProvider)
+          task.outputDirectory.set(additionalTestOutputDir)
         }
-        "/storage/emulated/0/Download/screenshots/$appId"
+        testTask.finalizedBy(pullScreenshotsTask)
+        updateTaskProvider.dependsOn(pullScreenshotsTask)
       }
-
-      val clearScreenshotsTask = tasks.register(
-        "clear${variantSlug}Screenshots",
-        ClearScreenshotsTask::class.java,
-      ) {
-        it.adbExecutable.set(adbExecutablePath)
-        it.screenshotDir.set(screenshotDir)
-      }
-
-      val pullScreenshotsTask = tasks.register(
-        "pull${variantSlug}Screenshots",
-        PullScreenshotsTask::class.java,
-      ) {
-        it.adbExecutable.set(adbExecutablePath)
-        it.screenshotDir.set(screenshotDir.map { base -> "$base/diff" })
-        it.outputDirectory.set(testTaskProvider.flatMap { (it as AndroidTestTask).resultsDir })
-        it.finalizedBy(clearScreenshotsTask)
-      }
-
-      val recordScreenshotsTask = tasks.register(
-        "record${variantSlug}Screenshots",
-        PullScreenshotsTask::class.java,
-      ) {
-        it.description = "Updates the local reference screenshots"
-
-        it.adbExecutable.set(adbExecutablePath)
-        it.screenshotDir.set(screenshotDir.map { base -> "$base/reference" })
-        it.outputDirectory.set(referenceScreenshotDirectory)
-        it.dependsOn(testTaskProvider)
-        it.finalizedBy(clearScreenshotsTask)
-      }
-
-      val isRecordingScreenshots = project.objects.property(Boolean::class.java)
-      if (hasProperty(recordScreenshotsArg)) {
-        project.logger.warn("The 'dropshots.record' property has been deprecated and will " +
-          "be removed in a future version.")
-        isRecordingScreenshots.set(true)
-      }
-      project.gradle.taskGraph.whenReady { graph ->
-        isRecordingScreenshots.set(recordScreenshotsTask.map { graph.hasTask(it) })
-      }
-
-      val writeMarkerFileTask = tasks.register(
-        "push${variantSlug}ScreenshotMarkerFile",
-        PushFileTask::class.java,
-      ) {
-        it.onlyIf { isRecordingScreenshots.get() }
-        it.adbExecutable.set(adbExecutablePath)
-        it.fileContents.set("\n")
-        it.remotePath.set(screenshotDir.map { dir -> "$dir/.isRecordingScreenshots" })
-        it.finalizedBy(clearScreenshotsTask)
-      }
-      testTaskProvider.dependsOn(writeMarkerFileTask)
-
-      testTaskProvider.configure {
-        it.finalizedBy(pullScreenshotsTask)
-      }
-    }
   }
 }

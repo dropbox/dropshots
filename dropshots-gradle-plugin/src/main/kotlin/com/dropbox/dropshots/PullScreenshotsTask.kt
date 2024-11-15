@@ -1,28 +1,27 @@
 package com.dropbox.dropshots
 
-import javax.inject.Inject
-import java.io.ByteArrayOutputStream
+import com.android.build.gradle.internal.LoggerWrapper
+import com.android.build.gradle.internal.testing.ConnectedDeviceProvider
+import com.android.ddmlib.DdmPreferences
+import java.io.File
+import kotlin.io.path.absolutePathString
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import org.gradle.process.ExecOperations
 
 public abstract class PullScreenshotsTask : DefaultTask() {
 
   @get:Input
-  public abstract val adbExecutable: Property<String>
+  public abstract val adbExecutable: Property<File>
 
   @get:Input
-  public abstract val screenshotDir: Property<String>
+  public abstract val remoteDir: Property<String>
 
   @get:OutputDirectory
   public abstract val outputDirectory: DirectoryProperty
-
-  @get:Inject
-  protected abstract val execOperations: ExecOperations
 
   init {
     description = "Pull screenshots from the test device."
@@ -32,32 +31,22 @@ public abstract class PullScreenshotsTask : DefaultTask() {
 
   @TaskAction
   public fun pullScreenshots() {
-    val outputDir = outputDirectory.get().asFile
-    outputDir.mkdirs()
+    val iLogger = LoggerWrapper(logger)
+    val deviceProvider = ConnectedDeviceProvider(
+      adbExecutable.get(),
+      DdmPreferences.getTimeOut(),
+      iLogger,
+      System.getenv("ANDROID_SERIAL"),
+    )
 
-    val adb = adbExecutable.get()
-    val dir = screenshotDir.get()
-    val checkResult = execOperations.exec {
-      it.executable = adb
-      it.args = listOf("shell", "test", "-d", dir)
-      it.isIgnoreExitValue = true
-    }
+    deviceProvider.use {
+      @Suppress("UnstableApiUsage")
+      deviceProvider.devices.forEach { device ->
+        val remotePath = remoteDir.get()
+        val localPath = outputDirectory.dir("${device.name}/dropshots").get().asFile.toPath()
 
-    if (checkResult.exitValue == 0) {
-      val output = ByteArrayOutputStream()
-      execOperations.exec {
-        it.executable = adb
-        it.args = listOf("pull", "$dir/.", outputDir.path)
-        it.standardOutput = output
-      }
-
-      val fileCount = """^$dir/?\./: ([0-9]*) files pulled,.*$""".toRegex()
-      val matchResult = fileCount.find(output.toString(Charsets.UTF_8))
-      if (matchResult != null && matchResult.groups.size > 1) {
-        println("${matchResult.groupValues[1]} screenshots saved at ${outputDir.path}")
-      } else {
-        println("Unknown result executing adb: $adb pull $dir/. ${outputDir.path}")
-        print(output.toString(Charsets.UTF_8))
+        // TODO Does this really only do a single file? If so we'll have to `ls` to get the files
+        device.pullFile("$remotePath/.", localPath.absolutePathString())
       }
     }
   }

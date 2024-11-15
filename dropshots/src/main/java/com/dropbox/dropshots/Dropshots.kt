@@ -1,19 +1,19 @@
 package com.dropbox.dropshots
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.os.Build
+import android.net.Uri
 import android.os.Environment
-import android.os.ParcelFileDescriptor
 import android.util.Base64
+import android.util.Log
 import android.view.View
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.platform.io.PlatformTestStorage
 import androidx.test.platform.io.PlatformTestStorageRegistry
-import androidx.test.rule.GrantPermissionRule
 import androidx.test.runner.screenshot.Screenshot
 import com.dropbox.differ.ImageComparator
 import com.dropbox.differ.Mask
@@ -22,7 +22,6 @@ import com.dropbox.dropshots.model.TestRunConfig
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
-import java.util.Properties
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
@@ -60,13 +59,14 @@ public class Dropshots @JvmOverloads constructor(
     className = fqName.substringAfterLast('.', missingDelimiterValue = "")
     testName = description.methodName
 
-    return if (Build.VERSION.SDK_INT <= 29) {
-      GrantPermissionRule
-        .grant(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        .apply(base, description)
-    } else {
-      base
-    }
+    return base
+//    return if (Build.VERSION.SDK_INT <= 29) {
+//      GrantPermissionRule
+//        .grant(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+//        .apply(base, description)
+//    } else {
+//      base
+//    }
   }
 
   /**
@@ -117,9 +117,10 @@ public class Dropshots @JvmOverloads constructor(
     filePath: String? = null,
   ) {
     val filename = filenameFunc(name)
+    val referencePath = path("dropshots", testRunConfig.deviceName, filePath, "$filename.png")
 
     val reference = try {
-      context.assets.open("$filename.png".prependPath(filePath)).use {
+      context.assets.open(referencePath).use {
         BitmapFactory.decodeStream(it)
       }
     } catch (e: FileNotFoundException) {
@@ -127,7 +128,7 @@ public class Dropshots @JvmOverloads constructor(
 
       if (!testRunConfig.isRecording) {
         throw IllegalStateException(
-          "Failed to find reference image named /$filename.png at path $filePath . " +
+          "Failed to find reference image file at $referencePath. " +
             "If this is a new test, you may need to record screenshots by running the `recordDebugAndroidTestScreenshots` gradle task.",
           e
         )
@@ -206,6 +207,7 @@ public class Dropshots @JvmOverloads constructor(
 
   @Throws(IOException::class)
   private fun writeImage(name: String, image: Bitmap) {
+    Log.d("RYAN", "Writing reference image to: ${testStorage.getOutputFileUri("dropshots/$name.png")}")
     testStorage.openOutputFile("dropshots/$name.png").use {
       image.compress(Bitmap.CompressFormat.PNG, 100, it)
     }
@@ -271,12 +273,16 @@ internal fun isRecordingScreenshots(testStorage: PlatformTestStorage): Boolean {
 }
 
 internal fun loadConfig(testStorage: PlatformTestStorage): TestRunConfig {
-  val testDataFileUri = testStorage.getOutputFileUri("dropshots/$configFileName")
+  val targetApplicationId = InstrumentationRegistry.getInstrumentation().targetContext.packageName
+  @SuppressLint("SdCardPath")
+  val testDataFileUri = Uri.fromFile(File("/sdcard/Android/media/${targetApplicationId}/dropshots/$configFileName"))
   return InstrumentationRegistry.getInstrumentation().context
     .contentResolver
-    .openFileDescriptor(testDataFileUri, "r")
-    .let(ParcelFileDescriptor::AutoCloseInputStream)
+    .openInputStream(testDataFileUri)
+//    .openFile(testDataFileUri, "r", null)
+//    .let(ParcelFileDescriptor::AutoCloseInputStream)
     .use { inputStream ->
+      requireNotNull(inputStream)
       TestRunConfig.read(inputStream)
     }
 }
@@ -301,6 +307,9 @@ internal val defaultFilenameFunc = { testName: String ->
     it.replace(" ", "_")
   }
 }
+
+private fun path(vararg parts: String?): String =
+  parts.filterNotNull().joinToString("/")
 
 private fun String.prependPath(path: String?): String =
   if (path == null) {

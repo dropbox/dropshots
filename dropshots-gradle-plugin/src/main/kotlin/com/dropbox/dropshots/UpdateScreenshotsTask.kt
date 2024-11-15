@@ -19,6 +19,9 @@ public abstract class UpdateScreenshotsTask : DefaultTask() {
   @get:InputDirectory
   public abstract val referenceImageDir: DirectoryProperty
 
+  @get:Input
+  public abstract val deviceProviderName: Property<String>
+
   @get:Optional
   @get:Input
   public abstract val outputBasePath: Property<String>
@@ -30,16 +33,21 @@ public abstract class UpdateScreenshotsTask : DefaultTask() {
   @TaskAction
   public fun performAction() {
     val from = referenceImageDir.asFile.get().toPath()
-    val to = outputDir.asFile.get().toPath().let { output ->
-      if (outputBasePath.isPresent) {
-        output.resolve(outputBasePath.get())
-      } else {
-        output
-      }
-    }
+    val to = outputDir.asFile.get().toPath()
     val logger = Logging.getLogger(UpdateScreenshotsTask::class.java)
-    logger.lifecycle("Copying reference images to $to")
-    Files.createDirectories(to)
-    from.copyToRecursively(to, followLinks = true)
+
+    Files.list(from).forEach { devicePath ->
+      val deviceName = deviceProviderName.get()
+      logger.lifecycle("Copying reference images for $deviceName")
+
+      val referenceImagePath = devicePath.resolve("dropshots/reference")
+      val outputPath = to.resolve(deviceName)
+      Files.createDirectories(outputPath)
+      referenceImagePath.copyToRecursively(
+        outputPath,
+        followLinks = true,
+        overwrite = true,
+      )
+    }
   }
 }

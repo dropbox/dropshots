@@ -17,7 +17,10 @@ import org.gradle.work.DisableCachingByDefault
 public abstract class WriteConfigFileTask : DefaultTask() {
 
   @get:Input
-  public abstract val getIsRecording: Property<Boolean>
+  public abstract val recordingScreenshots: Property<Boolean>
+
+  @get:Input
+  public abstract val deviceProviderName: Property<String>
 
   @get:Input
   public abstract val adbExecutable: Property<File>
@@ -48,7 +51,7 @@ public abstract class WriteConfigFileTask : DefaultTask() {
         }
 
         val deviceName = device.name
-        val config = TestRunConfig(getIsRecording.get(), deviceName)
+        val config = TestRunConfig(recordingScreenshots.get(), deviceProviderName.get())
         val remotePath = remoteDir.get()
         val loggingReceiver = object : MultiLineReceiver() {
           override fun isCancelled(): Boolean = false
@@ -57,11 +60,11 @@ public abstract class WriteConfigFileTask : DefaultTask() {
           }
         }
 
-        logger.info("DeviceConnector '$deviceName': creating parent directories $remotePath")
+        logger.info("DeviceConnector '$deviceName': creating directories $remotePath")
         executeShellCommand("mkdir -p $remotePath", loggingReceiver)
 
-        logger.info("DeviceConnector '$deviceName': writing config file to $remotePath")
         val configFile = "$remotePath/$configFileName"
+        logger.warn("DeviceConnector '$deviceName': writing config file to $configFile")
         executeShellCommand(
           "echo '${config.write()}' > $configFile",
           loggingReceiver,
