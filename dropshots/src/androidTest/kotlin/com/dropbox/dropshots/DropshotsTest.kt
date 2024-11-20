@@ -3,14 +3,12 @@ package com.dropbox.dropshots
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
-import android.net.Uri
-import android.os.Environment
 import android.view.View
 import androidx.core.net.toFile
 import androidx.test.ext.junit.rules.ActivityScenarioRule
-import androidx.test.platform.io.PlatformTestStorage
 import androidx.test.platform.io.PlatformTestStorageRegistry
 import com.dropbox.differ.SimpleImageComparator
+import com.dropbox.dropshots.model.TestRunConfig
 import java.io.File
 import org.junit.After
 import org.junit.Assert.assertArrayEquals
@@ -29,14 +27,14 @@ class DropshotsTest {
 
   private val fakeValidator = FakeResultValidator()
   private var filenameFunc: (String) -> String = { it }
-  private val isRecordingScreenshots = isRecordingScreenshots(defaultRootScreenshotDirectory())
+  private val isRecordingScreenshots = isRecordingScreenshots()
   private lateinit var testStorage: FileTestStorage
 
   @get:Rule val testName = TestName()
   @get:Rule
   val dropshots = Dropshots(
     filenameFunc = filenameFunc,
-    recordScreenshots = isRecordingScreenshots,
+    testRunConfig = TestRunConfig(isRecording = isRecordingScreenshots, deviceName = "test"),
     resultValidator = fakeValidator,
     imageComparator = SimpleImageComparator(
       maxDistance = 0.004f,
@@ -91,7 +89,7 @@ class DropshotsTest {
     val dropshots = Dropshots(
       testStorage = testStorage,
       filenameFunc = filenameFunc,
-      recordScreenshots = true,
+      testRunConfig = TestRunConfig(isRecording =true, deviceName = "test"),
       resultValidator = { false },
       imageComparator = SimpleImageComparator(),
     )
@@ -111,7 +109,7 @@ class DropshotsTest {
     val dropshots = Dropshots(
       testStorage = testStorage,
       filenameFunc = filenameFunc,
-      recordScreenshots = false,
+      testRunConfig = TestRunConfig(isRecording =false, deviceName = "test"),
       resultValidator = { false },
       imageComparator = SimpleImageComparator(),
     )
@@ -141,7 +139,7 @@ class DropshotsTest {
       resultValidator = CountValidator(0),
       testStorage = testStorage,
       filenameFunc = filenameFunc,
-      recordScreenshots = false,
+      testRunConfig = TestRunConfig(isRecording =false, deviceName = "test"),
       imageComparator = SimpleImageComparator(),
     )
 
@@ -167,7 +165,7 @@ class DropshotsTest {
       resultValidator = FakeResultValidator { true },
       testStorage = testStorage,
       filenameFunc = filenameFunc,
-      recordScreenshots = false,
+      testRunConfig = TestRunConfig(isRecording =false, deviceName = "test"),
       imageComparator = SimpleImageComparator(),
     )
 
@@ -191,7 +189,7 @@ class DropshotsTest {
       resultValidator = FakeResultValidator { false },
       testStorage = testStorage,
       filenameFunc = filenameFunc,
-      recordScreenshots = false,
+      testRunConfig = TestRunConfig(isRecording =false, deviceName = "test"),
       imageComparator = SimpleImageComparator(),
     )
 
@@ -222,7 +220,7 @@ class DropshotsTest {
       resultValidator = CountValidator(0),
       testStorage = testStorage,
       filenameFunc = filenameFunc,
-      recordScreenshots = false,
+      testRunConfig = TestRunConfig(isRecording =false, deviceName = "test"),
       imageComparator = SimpleImageComparator(),
     )
 

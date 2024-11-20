@@ -1,4 +1,4 @@
-package com.dropbox.dropshots
+package com.dropbox.dropshots.tasks
 
 import com.android.build.gradle.internal.LoggerWrapper
 import com.android.build.gradle.internal.testing.ConnectedDeviceProvider

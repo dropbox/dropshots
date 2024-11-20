@@ -40,7 +40,6 @@ allprojects {
   plugins.withType<KotlinBasePlugin>().configureEach {
     tasks.withType<KotlinCompile>().configureEach {
       compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
         apiVersion.set(KotlinVersion.KOTLIN_1_9)
         languageVersion.set(KotlinVersion.KOTLIN_1_9)
       }
@@ -50,7 +49,7 @@ allprojects {
   plugins.withType(JavaBasePlugin::class.java).configureEach {
     extensions.configure(JavaPluginExtension::class.java) {
       toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(21))
       }
     }
   }

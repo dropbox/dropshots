@@ -80,7 +80,3 @@ tasks.register("printVersionName") {
     println(project.property("VERSION_NAME"))
   }
 }
-
-tasks.withType<Test>().configureEach {
-  dependsOn(":dropshots:publishMavenPublicationToProjectLocalMavenRepository")
-}

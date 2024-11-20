@@ -1,15 +1,17 @@
-package com.dropbox.dropshots
+package com.dropbox.dropshots.tasks
 
 import com.android.build.gradle.internal.LoggerWrapper
-import com.android.build.gradle.internal.testing.ConnectedDeviceProvider
 import com.android.ddmlib.DdmPreferences
 import com.android.ddmlib.MultiLineReceiver
+import com.dropbox.dropshots.configFileName
+import com.dropbox.dropshots.device.DeviceProviderFactory
 import com.dropbox.dropshots.model.TestRunConfig
 import java.io.File
 import java.util.concurrent.TimeUnit
 import org.gradle.api.DefaultTask
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 
@@ -28,6 +30,9 @@ public abstract class WriteConfigFileTask : DefaultTask() {
   @get:Input
   public abstract val remoteDir: Property<String>
 
+  @get:Nested
+  public abstract val deviceProviderFactory: DeviceProviderFactory
+
   init {
     description = "Writes Dropshots config file to emulator"
     outputs.upToDateWhen { false }
@@ -36,12 +41,8 @@ public abstract class WriteConfigFileTask : DefaultTask() {
   @TaskAction
   public fun performAction() {
     val iLogger = LoggerWrapper(logger)
-    val deviceProvider = ConnectedDeviceProvider(
-      adbExecutable.get(),
-      DdmPreferences.getTimeOut(),
-      iLogger,
-      System.getenv("ANDROID_SERIAL"),
-    )
+    val deviceProvider = deviceProviderFactory
+      .getDeviceProvider(adbExecutable, iLogger)
 
     deviceProvider.use {
       @Suppress("UnstableApiUsage")

@@ -1,4 +1,4 @@
-package com.dropbox.dropshots
+package com.dropbox.dropshots.tasks
 
 import java.nio.file.Files
 import kotlin.io.path.ExperimentalPathApi

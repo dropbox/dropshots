@@ -14,12 +14,15 @@ import com.android.build.gradle.internal.tasks.factory.dependsOn
 import com.android.build.gradle.options.BooleanOption
 import com.android.build.gradle.options.ProjectOptionService
 import com.android.builder.core.ComponentType
+import com.dropbox.dropshots.tasks.GenerateReferenceScreenshotsTask
+import com.dropbox.dropshots.tasks.PullScreenshotsTask
+import com.dropbox.dropshots.tasks.UpdateScreenshotsTask
+import com.dropbox.dropshots.tasks.WriteConfigFileTask
 import java.io.File
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.provider.Provider
-import org.gradle.internal.configuration.problems.taskPathFrom
 
 private const val recordScreenshotsArg = "dropshots.record"
 
@@ -111,7 +114,6 @@ public class DropshotsPlugin : Plugin<Project> {
           task.referenceImageDir.set(layout.projectDirectory.dir("src/androidTest/screenshots"))
           task.outputDir.set(layout.buildDirectory.dir("generated/dropshots/reference"))
         }
-        logger.warn("Adding generated assets to: ${variant.sources.assets}")
         deviceTest.sources.assets?.addGeneratedSourceDirectory(addReferenceAssetsTask) { task -> task.outputDir }
 
         val updateTaskProvider = tasks.register(

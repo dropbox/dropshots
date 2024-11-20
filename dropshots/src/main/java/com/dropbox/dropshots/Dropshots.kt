@@ -29,7 +29,7 @@ import org.junit.runners.model.Statement
 public class Dropshots @JvmOverloads constructor(
   private val testStorage: PlatformTestStorage = PlatformTestStorageRegistry.getInstance(),
 
-  private val testRunConfig: TestRunConfig = loadConfig(testStorage),
+  private val testRunConfig: TestRunConfig = loadConfig(),
 
   /**
    * Function to create a filename from a snapshot name (i.e. the name provided when taking
@@ -268,19 +268,17 @@ internal fun defaultRootScreenshotDirectory(): File {
  * Reads the target application's `is_recording_screenshots` boolean resource to determine if
  * Dropshots should record screenshots or validate them.
  */
-internal fun isRecordingScreenshots(testStorage: PlatformTestStorage): Boolean {
-  return loadConfig(testStorage).isRecording
+internal fun isRecordingScreenshots(): Boolean {
+  return loadConfig().isRecording
 }
 
-internal fun loadConfig(testStorage: PlatformTestStorage): TestRunConfig {
+internal fun loadConfig(): TestRunConfig {
   val targetApplicationId = InstrumentationRegistry.getInstrumentation().targetContext.packageName
   @SuppressLint("SdCardPath")
   val testDataFileUri = Uri.fromFile(File("/sdcard/Android/media/${targetApplicationId}/dropshots/$configFileName"))
   return InstrumentationRegistry.getInstrumentation().context
     .contentResolver
     .openInputStream(testDataFileUri)
-//    .openFile(testDataFileUri, "r", null)
-//    .let(ParcelFileDescriptor::AutoCloseInputStream)
     .use { inputStream ->
       requireNotNull(inputStream)
       TestRunConfig.read(inputStream)
