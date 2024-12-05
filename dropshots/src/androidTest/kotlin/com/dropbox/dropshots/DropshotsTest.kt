@@ -27,14 +27,12 @@ class DropshotsTest {
 
   private val fakeValidator = FakeResultValidator()
   private var filenameFunc: (String) -> String = { it }
-  private val isRecordingScreenshots = isRecordingScreenshots()
   private lateinit var testStorage: FileTestStorage
 
   @get:Rule val testName = TestName()
   @get:Rule
   val dropshots = Dropshots(
     filenameFunc = filenameFunc,
-    testRunConfig = TestRunConfig(isRecording = isRecordingScreenshots, deviceName = "test"),
     resultValidator = fakeValidator,
     imageComparator = SimpleImageComparator(
       maxDistance = 0.004f,
@@ -85,22 +83,51 @@ class DropshotsTest {
   }
 
   @Test
-  fun testWritesReferenceImageForMissingImages() {
+  fun testWritesReferenceImageForMissingImagesWhenRecording() {
     val dropshots = Dropshots(
       testStorage = testStorage,
       filenameFunc = filenameFunc,
-      testRunConfig = TestRunConfig(isRecording =true, deviceName = "test"),
+      testRunConfig = TestRunConfig(isRecording = true, deviceName = "test"),
       resultValidator = { false },
       imageComparator = SimpleImageComparator(),
     )
 
     activityScenarioRule.scenario.onActivity {
-      dropshots.assertSnapshot(it, "MatchesViewScreenshotBad")
+      dropshots.assertSnapshot(it, "not-an-image")
     }
 
-    with(File(testStorage.outputDir, "reference")) {
+    with(File(testStorage.outputDir, "dropshots/reference")) {
       assertTrue(exists())
-      assertArrayEquals(arrayOf(File(this, "MatchesViewScreenshotBad.png")), listFiles())
+      assertArrayEquals(arrayOf("not-an-image.png"), list())
+    }
+  }
+
+  @Test
+  fun testWritesReferenceImageForMissingImagesWhenNotRecording() {
+    val dropshots = Dropshots(
+      testStorage = testStorage,
+      filenameFunc = filenameFunc,
+      testRunConfig = TestRunConfig(isRecording = false, deviceName = "test"),
+      resultValidator = { false },
+      imageComparator = SimpleImageComparator(),
+    )
+
+    activityScenarioRule.scenario.onActivity {
+      var failed = false
+      try {
+        dropshots.assertSnapshot(it, "not-an-image")
+        failed = true
+      } catch (_: IllegalStateException) {
+        // expected
+      }
+      if (failed) {
+        fail("Expected snapshot assertion to fail but it passed.")
+      }
+    }
+
+    with(File(testStorage.outputDir, "dropshots/reference")) {
+      assertTrue(exists())
+      assertArrayEquals(arrayOf("not-an-image.png"), list())
     }
   }
 
@@ -109,7 +136,27 @@ class DropshotsTest {
     val dropshots = Dropshots(
       testStorage = testStorage,
       filenameFunc = filenameFunc,
-      testRunConfig = TestRunConfig(isRecording =false, deviceName = "test"),
+      testRunConfig = TestRunConfig(isRecording = true, deviceName = "test"),
+      resultValidator = { false },
+      imageComparator = SimpleImageComparator(),
+    )
+
+    activityScenarioRule.scenario.onActivity {
+      dropshots.assertSnapshot(it, "MatchesViewScreenshot")
+    }
+
+    with(File(testStorage.outputDir, "dropshots/diff")) {
+      assertTrue(exists())
+      assertArrayEquals(arrayOf("MatchesViewScreenshot.png"), list())
+    }
+  }
+
+  @Test
+  fun testWritesDiffImageOnFailureWhenNotRecording() {
+    val dropshots = Dropshots(
+      testStorage = testStorage,
+      filenameFunc = filenameFunc,
+      testRunConfig = TestRunConfig(isRecording = false, deviceName = "test"),
       resultValidator = { false },
       imageComparator = SimpleImageComparator(),
     )
@@ -127,9 +174,9 @@ class DropshotsTest {
       }
     }
 
-    with(File(testStorage.inputDir, "diff")) {
+    with(File(testStorage.outputDir, "dropshots/diff")) {
       assertTrue(exists())
-      assertArrayEquals(arrayOf(File(this, "MatchesViewScreenshot.png")), listFiles())
+      assertArrayEquals(arrayOf("MatchesViewScreenshot.png"), list())
     }
   }
 
@@ -139,7 +186,7 @@ class DropshotsTest {
       resultValidator = CountValidator(0),
       testStorage = testStorage,
       filenameFunc = filenameFunc,
-      testRunConfig = TestRunConfig(isRecording =false, deviceName = "test"),
+      testRunConfig = TestRunConfig(isRecording = false, deviceName = "test"),
       imageComparator = SimpleImageComparator(),
     )
 
@@ -165,7 +212,7 @@ class DropshotsTest {
       resultValidator = FakeResultValidator { true },
       testStorage = testStorage,
       filenameFunc = filenameFunc,
-      testRunConfig = TestRunConfig(isRecording =false, deviceName = "test"),
+      testRunConfig = TestRunConfig(isRecording = false, deviceName = "test"),
       imageComparator = SimpleImageComparator(),
     )
 
@@ -189,7 +236,7 @@ class DropshotsTest {
       resultValidator = FakeResultValidator { false },
       testStorage = testStorage,
       filenameFunc = filenameFunc,
-      testRunConfig = TestRunConfig(isRecording =false, deviceName = "test"),
+      testRunConfig = TestRunConfig(isRecording = false, deviceName = "test"),
       imageComparator = SimpleImageComparator(),
     )
 
@@ -220,7 +267,7 @@ class DropshotsTest {
       resultValidator = CountValidator(0),
       testStorage = testStorage,
       filenameFunc = filenameFunc,
-      testRunConfig = TestRunConfig(isRecording =false, deviceName = "test"),
+      testRunConfig = TestRunConfig(isRecording = false, deviceName = "test"),
       imageComparator = SimpleImageComparator(),
     )
 
@@ -235,7 +282,7 @@ class DropshotsTest {
         dropshots.assertSnapshot(
           bitmap = image,
           name = "50x50",
-          filePath = "static"
+          filePath = "static",
         )
       } catch (e: AssertionError) {
         caughtError = e

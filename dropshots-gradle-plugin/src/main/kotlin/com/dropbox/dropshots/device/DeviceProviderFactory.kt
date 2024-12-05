@@ -10,9 +10,11 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Internal
 
 public abstract class DeviceProviderFactory {
+  @Suppress("DEPRECATION")
   @get:Internal
   internal var deviceProvider: DeviceProvider? = null
 
+  @Suppress("DEPRECATION")
   public fun getDeviceProvider(
     adbExecutableProvider: Provider<File>,
     logger: ILogger = LoggerWrapper.getLogger(DeviceProviderFactory::class.java),

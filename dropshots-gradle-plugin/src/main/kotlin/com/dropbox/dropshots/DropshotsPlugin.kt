@@ -28,14 +28,18 @@ private const val recordScreenshotsArg = "dropshots.record"
 
 public class DropshotsPlugin : Plugin<Project> {
   override fun apply(project: Project): Unit = with(project) {
+    val dropshotsExtension = extensions.create("dropshots", DropshotsExtension::class.java)
+
     plugins.withType(AndroidBasePlugin::class.java) { plugin ->
 
       // Add dropshots dependency
       afterEvaluate {
-        it.dependencies.add(
-          "androidTestImplementation",
-          "com.dropbox.dropshots:dropshots:$VERSION"
-        )
+        if (dropshotsExtension.applyDependency.get()) {
+          it.dependencies.add(
+            "androidTestImplementation",
+            "com.dropbox.dropshots:dropshots:$VERSION"
+          )
+        }
       }
 
       val updateAllTask = tasks.register("updateDropshotsScreenshots") {

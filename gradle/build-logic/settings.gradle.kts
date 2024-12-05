@@ -1,6 +1,6 @@
-pluginManagement {
-  includeBuild("gradle/build-logic")
+rootProject.name = "build-logic"
 
+pluginManagement {
   repositories {
     google {
       @Suppress("UnstableApiUsage")
@@ -16,6 +16,12 @@ pluginManagement {
 }
 
 dependencyResolutionManagement {
+  versionCatalogs {
+    create("libs") {
+      from(files("../libs.versions.toml"))
+    }
+  }
+
   @Suppress("UnstableApiUsage")
   repositories {
     google {
@@ -30,10 +36,7 @@ dependencyResolutionManagement {
   }
 }
 
-enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
-
-rootProject.name = "dropshots-root"
-
 include(":dropshots-gradle-plugin")
-include(":dropshots")
+project(":dropshots-gradle-plugin").projectDir = File("../../dropshots-gradle-plugin")
 include(":model")
+project(":model").projectDir = File("../../model")

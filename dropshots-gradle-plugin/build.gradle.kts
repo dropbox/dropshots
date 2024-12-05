@@ -1,22 +1,19 @@
-import com.android.build.gradle.tasks.SourceJarTask
 import com.vanniktech.maven.publish.GradlePlugin
 import com.vanniktech.maven.publish.JavadocJar.Dokka
-import org.gradle.jvm.tasks.Jar
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import com.vanniktech.maven.publish.MavenPublishBaseExtension
 
 plugins {
   `java-gradle-plugin`
   alias(libs.plugins.kotlin.jvm)
   alias(libs.plugins.dokka)
-  alias(libs.plugins.mavenPublish)
   alias(libs.plugins.binaryCompatibilityValidator)
 }
 
-mavenPublishing {
-  configure(GradlePlugin(Dokka("dokkaJavadoc")))
+if (rootProject.name == "dropshots-root") {
+  apply(plugin = libs.plugins.mavenPublish.get().pluginId)
+  extensions.configure<MavenPublishBaseExtension> {
+    configure(GradlePlugin(Dokka("dokkaJavadoc")))
+  }
 }
 
 val generateVersionTask = tasks.register("generateVersion") {

@@ -129,7 +129,7 @@ public class Dropshots @JvmOverloads constructor(
       if (!testRunConfig.isRecording) {
         throw IllegalStateException(
           "Failed to find reference image file at $referencePath. " +
-            "If this is a new test, you may need to record screenshots by running the `recordDebugAndroidTestScreenshots` gradle task.",
+            "If this is a new test, you may need to record screenshots by running the `updateDropshotsScreenshots` gradle task.",
           e
         )
       }
@@ -139,9 +139,9 @@ public class Dropshots @JvmOverloads constructor(
 
     if (bitmap.width != reference.width || bitmap.height != reference.height) {
       writeReferenceImage(filename, filePath, bitmap)
+      writeDiffImage(filename, filePath, bitmap, reference, null)
 
       if (!testRunConfig.isRecording) {
-        writeDiffImage(filename, filePath, bitmap, reference, null)
         throw AssertionError(
           "$name: Test image (w=${bitmap.width}, h=${bitmap.height}) differs in size" +
             " from reference image (w=${reference.width}, h=${reference.height})."
@@ -154,9 +154,9 @@ public class Dropshots @JvmOverloads constructor(
       imageComparator.compare(BitmapImage(reference), BitmapImage(bitmap), mask)
     } catch (e: IllegalArgumentException) {
       writeReferenceImage(filename, filePath, bitmap)
+      writeDiffImage(filename, filePath, bitmap, reference, mask)
 
       if (!testRunConfig.isRecording) {
-        writeDiffImage(filename, filePath, bitmap, reference, mask)
         throw AssertionError(
           "Failed to compare images: reference{width=${reference.width}, height=${reference.height}} " +
           "<> bitmap{width=${bitmap.width}, height=${bitmap.height}}",
@@ -170,9 +170,9 @@ public class Dropshots @JvmOverloads constructor(
     // Assert
     if (!resultValidator(result)) {
       writeReferenceImage(filename, filePath, bitmap)
+      writeDiffImage(filename, filePath, bitmap, reference, mask)
 
       if (!testRunConfig.isRecording) {
-        writeDiffImage(filename, filePath, bitmap, reference, mask)
         throw AssertionError(
           "\"$name\" failed to match reference image. ${result.pixelDifferences} pixels differ " +
             "(${(result.pixelDifferences / result.pixelCount.toFloat()) * 100} %)"
@@ -186,7 +186,7 @@ public class Dropshots @JvmOverloads constructor(
    * file path of the file that was written.
    */
   private fun writeReferenceImage(name: String, filePath: String?, screenshot: Bitmap) {
-    writeImage("reference".appendPath(filePath).appendPath(name), screenshot)
+    writeImage(path("reference", filePath, name), screenshot)
   }
 
   /**
@@ -202,7 +202,7 @@ public class Dropshots @JvmOverloads constructor(
     mask: Mask?
   ) {
     val diffImage = generateDiffImage(referenceImage, screenshot, mask)
-    writeImage("diff".appendPath(filePath).appendPath(name), diffImage)
+    writeImage(path("diff", filePath, name), diffImage)
   }
 
   @Throws(IOException::class)
