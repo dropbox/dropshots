@@ -11,8 +11,6 @@ import com.android.build.gradle.internal.tasks.DeviceProviderInstrumentTestTask
 import com.android.build.gradle.internal.tasks.ManagedDeviceInstrumentationTestTask
 import com.android.build.gradle.internal.tasks.ManagedDeviceTestTask
 import com.android.build.gradle.internal.tasks.factory.dependsOn
-import com.android.build.gradle.options.BooleanOption
-import com.android.build.gradle.options.ProjectOptionService
 import com.android.builder.core.ComponentType
 import com.dropbox.dropshots.tasks.GenerateReferenceScreenshotsTask
 import com.dropbox.dropshots.tasks.PullScreenshotsTask
@@ -65,9 +63,6 @@ public class DropshotsPlugin : Plugin<Project> {
         testedExtension.deviceProviders.forEach { deviceProvider ->
           addTasksForDeviceProvider(variant, deviceTestComponent, deviceProvider.name, adbProvider)
         }
-
-        val optionService = ProjectOptionService.RegistrationAction(this).execute().get()
-        optionService.projectOptions.get(BooleanOption.ENABLE_ADDITIONAL_ANDROID_TEST_OUTPUT)
       }
     }
   }
