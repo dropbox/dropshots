@@ -1,10 +1,11 @@
 public final class com/dropbox/dropshots/Dropshots : org/junit/rules/TestRule {
 	public fun <init> ()V
-	public fun <init> (Lkotlin/jvm/functions/Function1;)V
-	public fun <init> (Lkotlin/jvm/functions/Function1;Z)V
-	public fun <init> (Lkotlin/jvm/functions/Function1;ZLcom/dropbox/differ/ImageComparator;)V
-	public fun <init> (Lkotlin/jvm/functions/Function1;ZLcom/dropbox/differ/ImageComparator;Lkotlin/jvm/functions/Function1;)V
-	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;ZLcom/dropbox/differ/ImageComparator;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Landroidx/test/platform/io/PlatformTestStorage;)V
+	public fun <init> (Landroidx/test/platform/io/PlatformTestStorage;Lcom/dropbox/dropshots/model/TestRunConfig;)V
+	public fun <init> (Landroidx/test/platform/io/PlatformTestStorage;Lcom/dropbox/dropshots/model/TestRunConfig;Lkotlin/jvm/functions/Function1;)V
+	public fun <init> (Landroidx/test/platform/io/PlatformTestStorage;Lcom/dropbox/dropshots/model/TestRunConfig;Lkotlin/jvm/functions/Function1;Lcom/dropbox/differ/ImageComparator;)V
+	public fun <init> (Landroidx/test/platform/io/PlatformTestStorage;Lcom/dropbox/dropshots/model/TestRunConfig;Lkotlin/jvm/functions/Function1;Lcom/dropbox/differ/ImageComparator;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Landroidx/test/platform/io/PlatformTestStorage;Lcom/dropbox/dropshots/model/TestRunConfig;Lkotlin/jvm/functions/Function1;Lcom/dropbox/differ/ImageComparator;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun apply (Lorg/junit/runners/model/Statement;Lorg/junit/runner/Description;)Lorg/junit/runners/model/Statement;
 	public final fun assertSnapshot (Landroid/app/Activity;Ljava/lang/String;Ljava/lang/String;)V
 	public final fun assertSnapshot (Landroid/graphics/Bitmap;Ljava/lang/String;Ljava/lang/String;)V

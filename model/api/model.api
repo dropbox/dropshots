@@ -1,3 +1,7 @@
+public final class com/dropbox/dropshots/ConstantsKt {
+	public static final field configFileName Ljava/lang/String;
+}
+
 public final class com/dropbox/dropshots/model/TestRunConfig {
 	public static final field Companion Lcom/dropbox/dropshots/model/TestRunConfig$Companion;
 	public fun <init> (ZLjava/lang/String;)V
@@ -10,7 +14,7 @@ public final class com/dropbox/dropshots/model/TestRunConfig {
 	public fun hashCode ()I
 	public final fun isRecording ()Z
 	public fun toString ()Ljava/lang/String;
-	public final fun write (Ljava/io/OutputStream;)V
+	public final fun write ()Ljava/lang/String;
 }
 
 public final class com/dropbox/dropshots/model/TestRunConfig$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
@@ -26,6 +30,7 @@ public final class com/dropbox/dropshots/model/TestRunConfig$$serializer : kotli
 
 public final class com/dropbox/dropshots/model/TestRunConfig$Companion {
 	public final fun read (Ljava/io/InputStream;)Lcom/dropbox/dropshots/model/TestRunConfig;
+	public final fun read (Ljava/lang/String;)Lcom/dropbox/dropshots/model/TestRunConfig;
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
