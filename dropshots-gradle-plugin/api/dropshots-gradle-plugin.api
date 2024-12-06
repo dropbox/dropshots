@@ -1,9 +1,6 @@
-public abstract class com/dropbox/dropshots/ClearScreenshotsTask : org/gradle/api/DefaultTask {
-	public fun <init> ()V
-	public final fun clearScreenshots ()V
-	public abstract fun getAdbExecutable ()Lorg/gradle/api/provider/Property;
-	protected abstract fun getExecOperations ()Lorg/gradle/process/ExecOperations;
-	public abstract fun getScreenshotDir ()Lorg/gradle/api/provider/Property;
+public abstract class com/dropbox/dropshots/DropshotsExtension {
+	public fun <init> (Lorg/gradle/api/model/ObjectFactory;)V
+	public final fun getApplyDependency ()Lorg/gradle/api/provider/Property;
 }
 
 public final class com/dropbox/dropshots/DropshotsPlugin : org/gradle/api/Plugin {
@@ -12,26 +9,55 @@ public final class com/dropbox/dropshots/DropshotsPlugin : org/gradle/api/Plugin
 	public fun apply (Lorg/gradle/api/Project;)V
 }
 
-public abstract class com/dropbox/dropshots/PullScreenshotsTask : org/gradle/api/DefaultTask {
+public final class com/dropbox/dropshots/VersionKt {
+	public static final field VERSION Ljava/lang/String;
+}
+
+public abstract class com/dropbox/dropshots/device/DeviceProviderFactory {
 	public fun <init> ()V
+	public final fun getDeviceProvider (Lorg/gradle/api/provider/Provider;Lcom/android/utils/ILogger;Ljava/lang/String;)Lcom/android/builder/testing/api/DeviceProvider;
+	public static synthetic fun getDeviceProvider$default (Lcom/dropbox/dropshots/device/DeviceProviderFactory;Lorg/gradle/api/provider/Provider;Lcom/android/utils/ILogger;Ljava/lang/String;ILjava/lang/Object;)Lcom/android/builder/testing/api/DeviceProvider;
+}
+
+public abstract class com/dropbox/dropshots/tasks/ClearScreenshotsTask : org/gradle/api/DefaultTask {
+	public fun <init> ()V
+	public final fun clearScreenshots ()V
 	public abstract fun getAdbExecutable ()Lorg/gradle/api/provider/Property;
 	protected abstract fun getExecOperations ()Lorg/gradle/process/ExecOperations;
-	public abstract fun getOutputDirectory ()Lorg/gradle/api/file/DirectoryProperty;
 	public abstract fun getScreenshotDir ()Lorg/gradle/api/provider/Property;
+}
+
+public abstract class com/dropbox/dropshots/tasks/GenerateReferenceScreenshotsTask : org/gradle/api/DefaultTask {
+	public fun <init> ()V
+	public abstract fun getOutputDir ()Lorg/gradle/api/file/DirectoryProperty;
+	public abstract fun getReferenceImageDir ()Lorg/gradle/api/file/DirectoryProperty;
+	public final fun performAction ()V
+}
+
+public abstract class com/dropbox/dropshots/tasks/PullScreenshotsTask : org/gradle/api/DefaultTask {
+	public fun <init> ()V
+	public abstract fun getAdbExecutable ()Lorg/gradle/api/provider/Property;
+	public abstract fun getOutputDirectory ()Lorg/gradle/api/file/DirectoryProperty;
+	public abstract fun getRemoteDir ()Lorg/gradle/api/provider/Property;
 	public final fun pullScreenshots ()V
 }
 
-public abstract class com/dropbox/dropshots/PushFileTask : org/gradle/api/DefaultTask {
+public abstract class com/dropbox/dropshots/tasks/UpdateScreenshotsTask : org/gradle/api/DefaultTask {
 	public fun <init> ()V
-	public abstract fun getAdbExecutable ()Lorg/gradle/api/provider/Property;
-	protected abstract fun getExecOperations ()Lorg/gradle/process/ExecOperations;
-	public abstract fun getFileContents ()Lorg/gradle/api/provider/Property;
-	public abstract fun getRemotePath ()Lorg/gradle/api/provider/Property;
-	protected abstract fun getTempFileProvider ()Lorg/gradle/api/internal/file/temp/TemporaryFileProvider;
-	public final fun push ()V
+	public abstract fun getDeviceProviderName ()Lorg/gradle/api/provider/Property;
+	public abstract fun getOutputBasePath ()Lorg/gradle/api/provider/Property;
+	public abstract fun getOutputDir ()Lorg/gradle/api/file/DirectoryProperty;
+	public abstract fun getReferenceImageDir ()Lorg/gradle/api/file/DirectoryProperty;
+	public final fun performAction ()V
 }
 
-public final class com/dropbox/dropshots/VersionKt {
-	public static final field VERSION Ljava/lang/String;
+public abstract class com/dropbox/dropshots/tasks/WriteConfigFileTask : org/gradle/api/DefaultTask {
+	public fun <init> ()V
+	public abstract fun getAdbExecutable ()Lorg/gradle/api/provider/Property;
+	public abstract fun getDeviceProviderFactory ()Lcom/dropbox/dropshots/device/DeviceProviderFactory;
+	public abstract fun getDeviceProviderName ()Lorg/gradle/api/provider/Property;
+	public abstract fun getRecordingScreenshots ()Lorg/gradle/api/provider/Property;
+	public abstract fun getRemoteDir ()Lorg/gradle/api/provider/Property;
+	public final fun performAction ()V
 }
 
