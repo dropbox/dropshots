@@ -4,9 +4,10 @@
 [Unreleased]: https://github.com/dropbox/dropshots/compare/0.4.2...HEAD
 
 New:
-- Nothing yet!
+- Adds support for `additional_test_output` directory.
 
 Changed:
+- Updates runtime to always record reference **and** diff images.
 - Updates Gradle plugin to deprecate the `dropshots.record` property.
 
 Fixed:
@@ -15,12 +16,16 @@ Fixed:
 ### Updated Gradle tasks
 
 This version of Dropshots updates the Gradle plugin to deprecate the use of the
-`dropshots.record` property in favor of a new `recordDebugAndroidTestScreenshots` task
+`dropshots.record` property in favor of a new `updateDropshotsScreenshots` task
 to update the local reference images.
 
+By adding support for the `additional_test_output` directory, the Dropshots runtime
+now records images in the `build/outputs/connected_android_test_additional_output`
+directory.
+
 With this change the behavior of `Dropshots` has also changed, such that it will **always**
-record reference images on the test device so that the local copies can be updated without
-the need to recompile the app.
+record reference images so that the local copies can be updated without the need to
+recompile the app.
 
 ## [0.4.2] = 2024-05-21
 [0.4.2]: https://github.com/dropbox/dropshots/releases/tags/0.4.2

@@ -7,6 +7,7 @@ import com.dropbox.differ.Image
 import com.dropbox.differ.ImageComparator
 import com.dropbox.differ.ImageComparator.ComparisonResult
 import com.dropbox.differ.Mask
+import com.dropbox.dropshots.model.TestRunConfig
 import java.io.File
 import org.junit.After
 import org.junit.Before
@@ -25,9 +26,7 @@ class CustomImageComparatorTest {
 
   @get:Rule
   val dropshots = Dropshots(
-    rootScreenshotDirectory = imageDirectory,
     filenameFunc = defaultFilenameFunc,
-    recordScreenshots = false,
     imageComparator = comparator,
     resultValidator = CountValidator(0),
   )

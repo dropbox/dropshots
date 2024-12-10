@@ -1,46 +1,32 @@
-import com.android.build.gradle.tasks.SourceJarTask
 import com.vanniktech.maven.publish.GradlePlugin
 import com.vanniktech.maven.publish.JavadocJar.Dokka
-import org.gradle.jvm.tasks.Jar
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import com.vanniktech.maven.publish.MavenPublishBaseExtension
 
 plugins {
   `java-gradle-plugin`
   alias(libs.plugins.kotlin.jvm)
   alias(libs.plugins.dokka)
-  alias(libs.plugins.mavenPublish)
   alias(libs.plugins.binaryCompatibilityValidator)
 }
-
-buildscript {
-  repositories {
-    mavenCentral()
-    gradlePluginPortal()
+// This module is included in two projects:
+// - In the root project where it's released as one of our artifacts
+// - In build-logic project where we can use it for the runtime and samples.
+//
+// We only want to publish when it's being built in the root project.
+if (rootProject.name == "dropshots-root") {
+  apply(plugin = libs.plugins.mavenPublish.get().pluginId)
+  extensions.configure<MavenPublishBaseExtension> {
+    configure(GradlePlugin(Dokka("dokkaJavadoc")))
   }
-}
-
-repositories {
-  mavenCentral()
-  gradlePluginPortal()
-}
-
-sourceSets {
-  main.configure {
-    java.srcDir("src/generated/kotlin")
-  }
-}
-
-mavenPublishing {
-  configure(GradlePlugin(Dokka("dokkaJavadoc")))
+} else {
+  // Move the build directory when included in build-support so as to not poison the real build.
+  // If we don't the configuration cache is broken and all tasks are considered not up-to-date.
+  layout.buildDirectory = File(rootDir, "build/dropshots-gradle-plugin")
 }
 
 val generateVersionTask = tasks.register("generateVersion") {
   inputs.property("version", project.property("VERSION_NAME") as String)
-  outputs.dir(project.layout.projectDirectory.dir("src/generated/kotlin"))
-
+  outputs.dir(project.layout.buildDirectory.dir("generated/version/kotlin"))
   doLast {
     val output = File(outputs.files.first(), "com/dropbox/dropshots/Version.kt")
     output.parentFile.mkdirs()
@@ -52,28 +38,8 @@ val generateVersionTask = tasks.register("generateVersion") {
   }
 }
 
-tasks.withType<Jar>().configureEach {
-  dependsOn(generateVersionTask)
-}
-
-tasks.named("dokkaJavadoc").configure {
-  dependsOn(generateVersionTask)
-}
-
-tasks.named("compileKotlin").configure {
-  dependsOn(generateVersionTask)
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-  compilerOptions {
-    jvmTarget.set(JvmTarget.JVM_11)
-    apiVersion.set(KotlinVersion.KOTLIN_1_8)
-    languageVersion.set(KotlinVersion.KOTLIN_1_8)
-  }
-}
-
-tasks.withType<JavaCompile>().configureEach {
-  options.release.set(11)
+sourceSets.main {
+  java.srcDir(generateVersionTask)
 }
 
 kotlin {
@@ -94,8 +60,12 @@ val releaseMode = hasProperty("dropshots.releaseMode")
 dependencies {
   compileOnly(gradleApi())
   implementation(platform(libs.kotlin.bom))
-  // Don't impose our version of KGP on consumers
+  implementation(libs.android.builder.test)
+  implementation(libs.android.common)
+  implementation(libs.android.ddmlib)
+  implementation(projects.model)
 
+  // Don't impose our version of KGP on consumers
   if (releaseMode) {
     compileOnly(libs.android)
     compileOnly(libs.kotlin.plugin)
@@ -114,8 +84,4 @@ tasks.register("printVersionName") {
   doLast {
     println(project.property("VERSION_NAME"))
   }
-}
-
-tasks.withType<Test>().configureEach {
-  dependsOn(":dropshots:publishMavenPublicationToProjectLocalMavenRepository")
 }

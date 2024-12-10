@@ -1,4 +1,4 @@
-package com.dropbox.dropshots
+package com.dropbox.dropshots.tasks
 
 import javax.inject.Inject
 import org.gradle.api.DefaultTask

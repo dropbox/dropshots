@@ -123,16 +123,16 @@ class MyTest {
 With this test in place, any time the `connectedAndroidTest` task is run the screenshot of the
 Activity or View will be validated against the reference images stored in the repository. If any
 screenshots fail to match the reference images (within configurable thresholds), then an image will
-be written to the test report folder that shows the reference image, the actual image, and the diff
-of the two. By default, the test report folder is
-`${project.buildDir}/outputs/androidTest-results/connected`.
+be written to the additional test output folder that shows the reference image, the actual image,
+and the diff of the two. By default, the test report folder is
+`${project.buildDir}/outputs/connected_android_test_additional_output/debugAndroidTest/$device/connected`.
 
 The first time you create a screenshot test, however, there won't be any reference images, so you'll
 have to create them...
 
 ### Updating reference images
 
-Updating reference screenshots is as simple as running the `record[variant]Screenshots` Gradle task.
+Updating reference screenshots is as simple as running the `updateDropshotsScreenshots` Gradle task.
 This makes it easy to update screenshots in a single step, without requiring you to
 interact with the emulator or use esoteric `adb` commands.
 
