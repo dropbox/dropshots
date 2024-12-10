@@ -209,7 +209,7 @@ jobs:
 
       - name: Bundle test reports
         if: always()
-        run: find . -type d '(' -name 'reports' -o -name 'androidTest-results' ')' -exec zip -r instrumentation-test-build-reports.zip {} +
+        run: find . -type d '(' -name 'reports' -o -name 'androidTest-results' -o -name 'connected_android_test_additional_output' ')' -exec zip -r instrumentation-test-build-reports.zip {} +
 
       - name: Upload the build report
         if: always()
