@@ -1,8 +1,12 @@
 package com.dropbox.dropshots.tasks
 
+import java.io.FileNotFoundException
 import java.nio.file.Files
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.copyToRecursively
+import kotlin.io.path.exists
+import kotlin.io.path.listDirectoryEntries
+import kotlin.io.path.name
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.logging.Logging
@@ -40,7 +44,21 @@ public abstract class UpdateScreenshotsTask : DefaultTask() {
       val deviceName = deviceProviderName.get()
       logger.lifecycle("Copying reference images for $deviceName")
 
-      val referenceImagePath = devicePath.resolve("dropshots/reference")
+      val dropshotsPath = devicePath.resolve("dropshots")
+      if (!dropshotsPath.exists()) {
+        logger.error("Missing directory 'dropshots' in test output directory '$devicePath'")
+        throw FileNotFoundException("Missing directory 'dropshots' in test output directory '$devicePath'")
+      }
+
+      val referenceImagePath = dropshotsPath.resolve("reference")
+      if (!referenceImagePath.exists()) {
+        logger.error("Missing reference image directory in test output directory '$dropshotsPath'")
+        throw FileNotFoundException(
+          "Missing directory 'dropshots' in test output directory '$dropshotsPath'. " +
+            "Directories: [${dropshotsPath.listDirectoryEntries().joinToString(", ") { it.name } }]"
+        )
+      }
+
       val outputPath = to.resolve(deviceName)
       Files.createDirectories(outputPath)
       referenceImagePath.copyToRecursively(
