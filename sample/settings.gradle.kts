@@ -13,6 +13,7 @@ include(":app")
 includeBuild("..") {
   dependencySubstitution {
     substitute(module("com.dropbox.dropshots:dropshots")).using(project(":dropshots"))
+    substitute(module("com.dropbox.dropshots:model")).using(project(":model"))
   }
 }
 

@@ -1,9 +1,15 @@
 [versions]
-kotlin = "2.0.21"
 agp = "8.7.2"
+androidTools = "31.7.2"
+kotlin = "2.0.21"
+jvmTarget = "11"
+mavenPublish= "0.30.0"
 
 [libraries]
 android = { module = "com.android.tools.build:gradle", version.ref = "agp" }
+android-builder-test = { module = "com.android.tools.build:builder-test-api", version.ref = "agp" }
+android-ddmlib = { module = "com.android.tools.ddms:ddmlib", version.ref = "androidTools" }
+android-common = { module = "com.android.tools:common", version.ref = "androidTools" }
 androidx-annotation = { module = "androidx.annotation:annotation", version = "1.9.1" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version = "1.7.0" }
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version = "2.2.0" }
@@ -19,6 +25,10 @@ truth = "com.google.truth:truth:1.4.4"
 kotlin-bom = { module = "org.jetbrains.kotlin:kotlin-bom", version.ref = "kotlin" }
 kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kotlinx-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.7.3" }
+
+# build logic
+mavenPublishPlugin = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "mavenPublish" }
 
 [plugins]
 android-library = { id = "com.android.library", version.ref = "agp" }
@@ -26,7 +36,8 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 dokka = { id = "org.jetbrains.dokka", version = "1.9.20" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version = "12.1.1" }
-mavenPublish = { id = "com.vanniktech.maven.publish.base", version = "0.30.0" }
+mavenPublish = { id = "com.vanniktech.maven.publish.base", version.ref = "mavenPublish" }
 binaryCompatibilityValidator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.16.3" }
 

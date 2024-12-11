@@ -89,7 +89,7 @@ jobs:
 
       - name: (Fail-only) Bundle test reports
         if: failure()
-        run: find . -type d -name 'reports' | zip -@ -r unit-test-build-reports.zip
+        run: find . -type d -name 'reports' -exec zip -r unit-test-build-reports.zip {} +
 
       - name: (Fail-only) Upload the build report
         if: failure()
@@ -171,14 +171,19 @@ jobs:
         run: |
           echo "::error::Screenshot tests failed, please create a PR in your fork first." && exit 1
 
-      - name: Pull screenshots
+      - name: Record screenshots
         id: screenshotspull
-        continue-on-error: true
+        continue-on-error: false
+        uses: reactivecircus/android-emulator-runner@62dbb605bba737720e10b196cb4220d374026a6d # v2.33.0
         if: steps.screenshotsverify.outcome == 'failure' && github.event_name == 'pull_request'
-        run: |
-          echo "Pulling $(ls -1q dropshots/build/reports/androidTests/dropshots/reference/*.png | wc -l) files..."
-          ls -1q dropshots/build/reports/androidTests/dropshots/reference/*.png
-          cp dropshots/build/reports/androidTests/dropshots/reference/*.png dropshots/src/androidTest/assets/
+        with:
+          api-level: 31
+          arch: x86_64
+          profile: pixel_5
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: ./gradlew updateDropshotsScreenshots --stacktrace
 
       # Since commits from actions don't trigger new actions, we validate the new screenshots here
       # before we commit them to ensure there isn't flakiness in the tests.
@@ -204,7 +209,7 @@ jobs:
 
       - name: Bundle test reports
         if: always()
-        run: find . -type d '(' -name 'reports' -o -name 'androidTest-results' ')' | zip -@ -r instrumentation-test-build-reports.zip
+        run: find . -type d '(' -name 'reports' -o -name 'androidTest-results' -o -name 'connected_android_test_additional_output' ')' -exec zip -r instrumentation-test-build-reports.zip {} +
 
       - name: Upload the build report
         if: always()

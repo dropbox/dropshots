@@ -1,5 +1,5 @@
+import com.android.build.gradle.internal.tasks.factory.dependsOn
 import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
-import java.io.ByteArrayOutputStream
 import java.util.Locale
 
 plugins {
@@ -8,6 +8,12 @@ plugins {
   alias(libs.plugins.dokka)
   alias(libs.plugins.mavenPublish)
   alias(libs.plugins.binaryCompatibilityValidator)
+  id("com.dropbox.dropshots")
+}
+
+dropshots {
+  // Our dropshots tests will use us, so we don't want a maven dependency added.
+  applyDependency.set(false)
 }
 
 android {
@@ -21,13 +27,6 @@ android {
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
-  compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-  }
-  kotlinOptions {
-    jvmTarget = "1.8"
-  }
 }
 
 kotlin {
@@ -36,6 +35,7 @@ kotlin {
 
 dependencies {
   api(libs.differ)
+  api(projects.model)
 
   implementation(libs.androidx.annotation)
   implementation(libs.androidx.test.runner)
@@ -65,34 +65,8 @@ mavenPublishing {
 
 val adbExecutablePath = provider { android.adbExecutable.path }
 android.testVariants.all {
-  val screenshotDir = "/storage/emulated/0/Download/screenshots/com.dropbox.dropshots.test"
   val connectedAndroidTest = connectedInstrumentTestProvider
   val variantSlug = name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-
-  val recordScreenshotsTask = tasks.register("record${variantSlug}Screenshots")
-  val isRecordingScreenshots = project.objects.property(Boolean::class.java)
-  project.gradle.taskGraph.whenReady {
-    isRecordingScreenshots.set(recordScreenshotsTask.map { hasTask(it) })
-  }
-
-  val pushMarkerFileTask = tasks.register("push${variantSlug}ScreenshotMarkerFile") {
-    description = "Push screenshot marker file to test device."
-    group = "verification"
-    outputs.upToDateWhen { false }
-    onlyIf { isRecordingScreenshots.get() }
-
-    doLast {
-      val adb = adbExecutablePath.get()
-      project.exec {
-        executable = adb
-        args = listOf("shell", "mkdir", "-p", screenshotDir)
-      }
-      project.exec {
-        executable = adb
-        args = listOf("shell", "touch", "$screenshotDir/.isRecordingScreenshots")
-      }
-    }
-  }
 
   val setupEmulatorTask = tasks.register("setup${variantSlug}ScreenshotEmulator") {
     description = "Configures the test device for screenshots."
@@ -130,56 +104,7 @@ android.testVariants.all {
     }
   }
 
-  val pullScreenshotsTask = tasks.register("pull${variantSlug}Screenshots") {
-    description = "Pull screenshots from the test device."
-    group = "verification"
-    outputs.dir(project.layout.buildDirectory.dir("reports/androidTests/dropshots"))
-    outputs.upToDateWhen { false }
-
-    doLast {
-      val outputDir = outputs.files.singleFile
-      outputDir.mkdirs()
-
-      val adb = adbExecutablePath.get()
-      val checkResult = project.exec {
-        executable = adb
-        args = listOf("shell", "test", "-d", screenshotDir)
-        isIgnoreExitValue = true
-      }
-
-      if (checkResult.exitValue == 0) {
-        val output = ByteArrayOutputStream()
-        val pullResult = project.exec {
-          executable = adb
-          args = listOf("pull", "$screenshotDir/.", outputDir.path)
-          standardOutput = output
-          isIgnoreExitValue = true
-        }
-
-        if (pullResult.exitValue == 0) {
-          val fileCount = """^${screenshotDir.replace(".", "\\.")}/?\./: ([0-9]*) files pulled,.*$""".toRegex()
-          val matchResult = fileCount.find(output.toString(Charsets.UTF_8))
-          if (matchResult != null && matchResult.groups.size > 1) {
-            println("${matchResult.groupValues[1]} screenshots saved at ${outputDir.path}")
-          } else {
-            println("Unknown result executing adb: $adb pull $screenshotDir/. ${outputDir.path}")
-            print(output.toString(Charsets.UTF_8))
-          }
-        } else {
-          println("Failed to pull screenshots.")
-        }
-
-        project.exec {
-          executable = adb
-          args = listOf("shell", "rm", "-r", "/storage/emulated/0/Download/screenshots")
-        }
-      }
-    }
-  }
-
   connectedAndroidTest.configure {
-    dependsOn(pushMarkerFileTask)
-    finalizedBy(pullScreenshotsTask)
     dependsOn(setupEmulatorTask)
     finalizedBy(restoreEmulatorTask)
   }
