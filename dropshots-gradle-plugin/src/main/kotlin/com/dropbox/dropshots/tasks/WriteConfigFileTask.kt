@@ -65,7 +65,7 @@ public abstract class WriteConfigFileTask : DefaultTask() {
         executeShellCommand("mkdir -p $remotePath", loggingReceiver)
 
         val configFile = "$remotePath/$configFileName"
-        logger.debug("DeviceConnector '$deviceName': writing config TestRunConfig(isRecording=${config.isRecording}, deviceName=${config.deviceName}) to $configFile")
+        logger.warn("DeviceConnector '$deviceName': writing config TestRunConfig(isRecording=${config.isRecording}, deviceName=${config.deviceName}) to $configFile")
         executeShellCommand(
           "echo '${config.write()}' > $configFile",
           loggingReceiver,
