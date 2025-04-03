@@ -120,7 +120,6 @@ public class Dropshots internal constructor(
     name: String = snapshotName,
     filePath: String? = null,
   ) {
-    // Some CI filesystems don't support spaces in artifact names so we also have to replace them with underscores.
     val filename = filenameFunc(className, name)
 
     val reference = try {
