@@ -81,7 +81,6 @@ public class DropshotsPlugin : Plugin<Project> {
         it.adbExecutable.set(adbExecutablePath)
         it.screenshotDir.set(screenshotDir)
         it.outputDirectory.set(testTaskProvider.flatMap { (it as AndroidTestTask).resultsDir })
-        it.mustRunAfter(testTaskProvider)
         it.finalizedBy(clearScreenshotsTask)
       }
 
@@ -96,7 +95,7 @@ public class DropshotsPlugin : Plugin<Project> {
           }
         )
         it.into(referenceScreenshotDirectory)
-        it.dependsOn(testTaskProvider, pullScreenshotsTask)
+        it.dependsOn(pullScreenshotsTask)
         it.finalizedBy(clearScreenshotsTask)
       }
 
