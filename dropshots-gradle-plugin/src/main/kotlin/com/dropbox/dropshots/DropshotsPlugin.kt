@@ -9,6 +9,7 @@ import com.android.build.gradle.internal.tasks.factory.dependsOn
 import java.util.Locale
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.tasks.Copy
 
 private const val recordScreenshotsArg = "dropshots.record"
 
@@ -73,36 +74,29 @@ public class DropshotsPlugin : Plugin<Project> {
         it.screenshotDir.set(screenshotDir)
       }
 
-      val pullScreenshotsDiffTask = tasks.register(
-        "pull${variantSlug}DiffScreenshots",
+      val pullScreenshotTask = tasks.register(
+        "pull${variantSlug}Screenshots",
         PullScreenshotsTask::class.java,
       ) {
         it.adbExecutable.set(adbExecutablePath)
-        it.screenshotDir.set(screenshotDir.map { base -> "$base/diff" })
+        it.screenshotDir.set(screenshotDir)
         it.outputDirectory.set(testTaskProvider.flatMap { (it as AndroidTestTask).resultsDir })
-        it.finalizedBy(clearScreenshotsTask)
-      }
-
-      val pullScreenshotsReferenceTask = tasks.register(
-        "pull${variantSlug}ReferenceScreenshots",
-        PullScreenshotsTask::class.java,
-      ) {
-        it.adbExecutable.set(adbExecutablePath)
-        it.screenshotDir.set(screenshotDir.map { base -> "$base/reference" })
-        it.outputDirectory.set(testTaskProvider.flatMap { (it as AndroidTestTask).resultsDir })
+        it.mustRunAfter(testTaskProvider)
         it.finalizedBy(clearScreenshotsTask)
       }
 
       val recordScreenshotsTask = tasks.register(
         "record${variantSlug}Screenshots",
-        PullScreenshotsTask::class.java,
+        Copy::class.java,
       ) {
         it.description = "Updates the local reference screenshots"
-
-        it.adbExecutable.set(adbExecutablePath)
-        it.screenshotDir.set(screenshotDir.map { base -> "$base/reference" })
-        it.outputDirectory.set(referenceScreenshotDirectory)
-        it.dependsOn(testTaskProvider)
+        it.from(
+          testTaskProvider.flatMap {
+            (it as AndroidTestTask).resultsDir.map { base -> "$base/reference" }
+          }
+        )
+        it.into(referenceScreenshotDirectory)
+        it.dependsOn(testTaskProvider, pullScreenshotTask)
         it.finalizedBy(clearScreenshotsTask)
       }
 
@@ -129,7 +123,7 @@ public class DropshotsPlugin : Plugin<Project> {
       testTaskProvider.dependsOn(writeMarkerFileTask)
 
       testTaskProvider.configure {
-        it.finalizedBy(pullScreenshotsReferenceTask, pullScreenshotsDiffTask)
+        it.finalizedBy(pullScreenshotTask)
       }
     }
   }
