@@ -74,7 +74,7 @@ public class DropshotsPlugin : Plugin<Project> {
         it.screenshotDir.set(screenshotDir)
       }
 
-      val pullScreenshotTask = tasks.register(
+      val pullScreenshotsTask = tasks.register(
         "pull${variantSlug}Screenshots",
         PullScreenshotsTask::class.java,
       ) {
@@ -96,7 +96,7 @@ public class DropshotsPlugin : Plugin<Project> {
           }
         )
         it.into(referenceScreenshotDirectory)
-        it.dependsOn(testTaskProvider, pullScreenshotTask)
+        it.dependsOn(testTaskProvider, pullScreenshotsTask)
         it.finalizedBy(clearScreenshotsTask)
       }
 
@@ -123,7 +123,7 @@ public class DropshotsPlugin : Plugin<Project> {
       testTaskProvider.dependsOn(writeMarkerFileTask)
 
       testTaskProvider.configure {
-        it.finalizedBy(pullScreenshotTask)
+        it.finalizedBy(pullScreenshotsTask)
       }
     }
   }
