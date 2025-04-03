@@ -23,7 +23,7 @@ import org.junit.runners.model.Statement
 
 public class Dropshots internal constructor(
   private val rootScreenshotDirectory: File,
-  private val filenameFunc: (String) -> String,
+  private val filenameFunc: (String, String) -> String,
   private val recordScreenshots: Boolean,
   private val imageComparator: ImageComparator,
   private val resultValidator: ResultValidator,
@@ -39,10 +39,10 @@ public class Dropshots internal constructor(
   @JvmOverloads
   public constructor(
     /**
-     * Function to create a filename from a snapshot name (i.e. the name provided when taking
-     * the snapshot).
+     * Function to create a filename from the class name and snapshot name (i.e. the name provided when taking
+     * the snapshot). Default behavior will use the calling function name.
      */
-    filenameFunc: (String) -> String = defaultFilenameFunc,
+    filenameFunc: (String, String) -> String = defaultFilenameFunc,
     /**
      * Indicates whether new reference screenshots should be recorded. Otherwise Dropshots performs
      * validation of test screenshots against reference screenshots.
@@ -120,7 +120,7 @@ public class Dropshots internal constructor(
     name: String = snapshotName,
     filePath: String? = null,
   ) {
-    val filename = filenameFunc(name)
+    val filename = filenameFunc(className, name)
 
     val reference = try {
       context.assets.open("$filename.png".prependPath(filePath)).use {
@@ -132,7 +132,9 @@ public class Dropshots internal constructor(
       if (!recordScreenshots) {
         throw IllegalStateException(
           "Failed to find reference image named /$filename.png at path $filePath . " +
-            "If this is a new test, you may need to record screenshots by adding `dropshots.record=true` to your gradle.properties file, or gradlew with `-Pdropshots.record`.",
+            "If this is a new test, you may need to record screenshots by running " +
+            "record<variantSlug>Screenshots gradle task or pulling screenshots " +
+            "from a previous run using pull<variantSlug>Screenshots gradle task",
           e
         )
       }
@@ -205,7 +207,7 @@ public class Dropshots internal constructor(
     filePath: String?,
     screenshot: Bitmap,
     referenceImage: Bitmap,
-    mask: Mask?
+    mask: Mask?,
   ): String {
     val screenshotFolder = File(rootScreenshotDirectory, "diff".appendPath(filePath))
     val diffImage = generateDiffImage(referenceImage, screenshot, mask)
@@ -218,6 +220,11 @@ public class Dropshots internal constructor(
     }
 
     val file = File(dir, "${name.replace(" ", "_")}.png")
+    if (file.exists()){
+      throw IllegalStateException("Unable to create screenshot, file already exists. Please " +
+        "specify name param with something more specific when calling assertSnapshot function")
+    }
+
     file.outputStream().use {
       image.compress(Bitmap.CompressFormat.PNG, 100, it)
     }
@@ -291,7 +298,7 @@ internal fun isRecordingScreenshots(rootScreenshotDirectory: File): Boolean {
  * encoding the end of the name, leaving the beginning in tact to hopefully provide
  * somewhat human readable names while still trying to prevent collisions.
  */
-internal val defaultFilenameFunc = { testName: String ->
+internal val defaultFilenameFunc = { _: String, testName: String ->
   if (testName.length < 64) {
     testName
   } else {
