@@ -39,7 +39,7 @@ public class Dropshots internal constructor(
   @JvmOverloads
   public constructor(
     /**
-     * Function to create a filename from a snapshot name (i.e. the name provided when taking
+     * Function to create a filename from the class name and snapshot name (i.e. the name provided when taking
      * the snapshot). Default behavior will use the calling function name.
      */
     filenameFunc: (String, String) -> String = defaultFilenameFunc,
