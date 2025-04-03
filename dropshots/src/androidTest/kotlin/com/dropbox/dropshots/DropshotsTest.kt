@@ -24,7 +24,7 @@ class DropshotsTest {
   val activityScenarioRule = ActivityScenarioRule(TestActivity::class.java)
 
   private val fakeValidator = FakeResultValidator()
-  private var filenameFunc: (String) -> String = { it }
+  private var filenameFunc: (String, String) -> String = { _, funcName -> funcName }
   private val isRecordingScreenshots = isRecordingScreenshots(defaultRootScreenshotDirectory())
   private lateinit var imageDirectory: File
 
