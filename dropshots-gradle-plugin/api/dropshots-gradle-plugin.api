@@ -6,6 +6,11 @@ public abstract class com/dropbox/dropshots/ClearScreenshotsTask : org/gradle/ap
 	public abstract fun getScreenshotDir ()Lorg/gradle/api/provider/Property;
 }
 
+public abstract class com/dropbox/dropshots/DropshotsExtension {
+	public fun <init> (Lorg/gradle/api/model/ObjectFactory;)V
+	public final fun getReferenceOutputDirectory ()Lorg/gradle/api/provider/Property;
+}
+
 public final class com/dropbox/dropshots/DropshotsPlugin : org/gradle/api/Plugin {
 	public fun <init> ()V
 	public synthetic fun apply (Ljava/lang/Object;)V
