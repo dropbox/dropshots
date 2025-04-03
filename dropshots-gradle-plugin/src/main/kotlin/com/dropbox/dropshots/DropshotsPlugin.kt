@@ -14,20 +14,25 @@ private const val recordScreenshotsArg = "dropshots.record"
 
 public class DropshotsPlugin : Plugin<Project> {
   override fun apply(project: Project) {
+    val dropshotsExtension = project.extensions.create("dropshots", DropshotsExtension::class.java)
+
     project.pluginManager.withPlugin("com.android.application") {
       val extension = project.extensions.findByType(AppExtension::class.java)
         ?: throw Exception("Failed to find Android Application extension")
-      project.configureDropshots(extension)
+      project.configureDropshots(dropshotsExtension, extension)
     }
 
     project.pluginManager.withPlugin("com.android.library") {
       val extension = project.extensions.findByType(LibraryExtension::class.java)
         ?: throw Exception("Failed to find Android Library extension")
-      project.configureDropshots(extension)
+      project.configureDropshots(dropshotsExtension, extension)
     }
   }
 
-  private fun Project.configureDropshots(extension: TestedExtension) {
+  private fun Project.configureDropshots(
+    dropshotsExtension: DropshotsExtension,
+    extension: TestedExtension
+  ) {
     project.afterEvaluate {
       it.dependencies.add(
         "androidTestImplementation",
@@ -39,8 +44,7 @@ public class DropshotsPlugin : Plugin<Project> {
     val androidTestSourceSet = extension.sourceSets.findByName("androidTest")
       ?: throw Exception("Failed to find androidTest source set")
 
-    // TODO configure this via extension
-    val referenceScreenshotDirectory = layout.projectDirectory.dir("src/androidTest/screenshots")
+    val referenceScreenshotDirectory = layout.projectDirectory.dir(dropshotsExtension.referenceOutputDirectory)
 
     androidTestSourceSet.assets {
       srcDirs(referenceScreenshotDirectory)
@@ -69,12 +73,22 @@ public class DropshotsPlugin : Plugin<Project> {
         it.screenshotDir.set(screenshotDir)
       }
 
-      val pullScreenshotsTask = tasks.register(
-        "pull${variantSlug}Screenshots",
+      val pullScreenshotsDiffTask = tasks.register(
+        "pull${variantSlug}DiffScreenshots",
         PullScreenshotsTask::class.java,
       ) {
         it.adbExecutable.set(adbExecutablePath)
         it.screenshotDir.set(screenshotDir.map { base -> "$base/diff" })
+        it.outputDirectory.set(testTaskProvider.flatMap { (it as AndroidTestTask).resultsDir })
+        it.finalizedBy(clearScreenshotsTask)
+      }
+
+      val pullScreenshotsReferenceTask = tasks.register(
+        "pull${variantSlug}ReferenceScreenshots",
+        PullScreenshotsTask::class.java,
+      ) {
+        it.adbExecutable.set(adbExecutablePath)
+        it.screenshotDir.set(screenshotDir.map { base -> "$base/reference" })
         it.outputDirectory.set(testTaskProvider.flatMap { (it as AndroidTestTask).resultsDir })
         it.finalizedBy(clearScreenshotsTask)
       }
@@ -115,7 +129,7 @@ public class DropshotsPlugin : Plugin<Project> {
       testTaskProvider.dependsOn(writeMarkerFileTask)
 
       testTaskProvider.configure {
-        it.finalizedBy(pullScreenshotsTask)
+        it.finalizedBy(pullScreenshotsReferenceTask, pullScreenshotsDiffTask)
       }
     }
   }

@@ -7,7 +7,6 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.os.Build
 import android.os.Environment
-import android.util.Base64
 import android.view.View
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
@@ -23,7 +22,6 @@ import org.junit.runners.model.Statement
 
 public class Dropshots internal constructor(
   private val rootScreenshotDirectory: File,
-  private val filenameFunc: (String) -> String,
   private val recordScreenshots: Boolean,
   private val imageComparator: ImageComparator,
   private val resultValidator: ResultValidator,
@@ -34,15 +32,8 @@ public class Dropshots internal constructor(
   private var className: String = ""
   private var testName: String = ""
 
-  private val snapshotName: String get() = testName
-
   @JvmOverloads
   public constructor(
-    /**
-     * Function to create a filename from a snapshot name (i.e. the name provided when taking
-     * the snapshot).
-     */
-    filenameFunc: (String) -> String = defaultFilenameFunc,
     /**
      * Indicates whether new reference screenshots should be recorded. Otherwise Dropshots performs
      * validation of test screenshots against reference screenshots.
@@ -56,7 +47,7 @@ public class Dropshots internal constructor(
      * The `ResultValidator` used to validate the comparison results.
      */
     resultValidator: ResultValidator = CountValidator(0),
-  ): this(defaultRootScreenshotDirectory(), filenameFunc, recordScreenshots, imageComparator, resultValidator)
+  ): this(defaultRootScreenshotDirectory(), recordScreenshots, imageComparator, resultValidator)
 
   override fun apply(base: Statement, description: Description): Statement {
     fqName = description.className
@@ -79,27 +70,35 @@ public class Dropshots internal constructor(
    * If `BuildConfig.IS_RECORD_SCREENSHOTS` is set to `true`, then the screenshot will simply be written
    * to disk to be pulled to the host machine to update the reference images.
    *
-   * @param filePath where the screenshots should be store in project eg. "views/colors"
+   * @param name lambda to create a filename from the snapshot name (i.e. the name provided when
+   * taking the snapshot), first parameter is the class name and the second is the test name.
+   * Defaults to `<class-name>_<func-name>.png` limited to 255 chars, replacing all spaces with underscores.
+   * @param filePath where the screenshots should be store in project under [com.dropbox.dropshots.DropshotsExtension.referenceOutputDirectory]
    */
+  @Deprecated("Use assertSnapshot(view: View, fileName: (String, String) -> String, filePath: String?) instead")
   public fun assertSnapshot(
     view: View,
-    name: String = snapshotName,
+    name: String,
     filePath: String? = null,
-  ): Unit = assertSnapshot(Screenshot.capture(view).bitmap, name, filePath)
+  ): Unit = assertSnapshot(Screenshot.capture(view).bitmap, { _, _ -> name }, filePath)
 
   /**
-   * Compares a screenshot of the activity to a reference screenshot from the test application's assets.
+   * Compares a screenshot of the [Activity] to a reference screenshot from the test application's assets.
    *
    * If `BuildConfig.IS_RECORD_SCREENSHOTS` is set to `true`, then the screenshot will simply be written
    * to disk to be pulled to the host machine to update the reference images.
    *
-   * @param filePath where the screenshots should be store in project eg. "views/colors"
+   * @param name lambda to create a filename from the snapshot name (i.e. the name provided when
+   * taking the snapshot), first parameter is the class name and the second is the test name.
+   * Defaults to `<class-name>_<func-name>.png` limited to 255 chars, replacing all spaces with underscores.
+   * @param filePath where the screenshots should be store in project under [com.dropbox.dropshots.DropshotsExtension.referenceOutputDirectory]
    */
+  @Deprecated("Use assertSnapshot(activity: Activity, fileName: (String, String) -> String, filePath: String?) instead")
   public fun assertSnapshot(
     activity: Activity,
-    name: String = snapshotName,
+    name: String,
     filePath: String? = null,
-  ): Unit = assertSnapshot(Screenshot.capture(activity).bitmap, name, filePath)
+  ): Unit = assertSnapshot(Screenshot.capture(activity).bitmap, { _, _ -> name }, filePath)
 
   /**
    * Compares a screenshot of the visible screen content to a reference screenshot from the test application's assets.
@@ -107,20 +106,112 @@ public class Dropshots internal constructor(
    * If `BuildConfig.IS_RECORD_SCREENSHOTS` is set to `true`, then the screenshot will simply be written
    * to disk to be pulled to the host machine to update the reference images.
    *
-   * @param filePath where the screenshots should be store in project eg. "views/colors"
+   * @param name lambda to create a filename from the snapshot name (i.e. the name provided when
+   * taking the snapshot), first parameter is the class name and the second is the test name.
+   * Defaults to `<class-name>_<func-name>.png` limited to 255 chars, replacing all spaces with underscores.
+   * @param filePath where the screenshots should be store in project under [com.dropbox.dropshots.DropshotsExtension.referenceOutputDirectory]
    */
+  @Deprecated("Use assertSnapshot(fileName: (String, String) -> String, filePath: String?) instead")
   public fun assertSnapshot(
-    name: String = snapshotName,
+    name: String,
     filePath: String? = null,
-  ): Unit = assertSnapshot(Screenshot.capture().bitmap, name, filePath)
+  ): Unit = assertSnapshot(Screenshot.capture().bitmap, { _, _ -> name }, filePath)
 
+
+  /**
+   * Compares a [bitmap] to a reference screenshot from the test application's assets.
+   *
+   * If `BuildConfig.IS_RECORD_SCREENSHOTS` is set to `true`, then the screenshot will simply be written
+   * to disk to be pulled to the host machine to update the reference images.
+   *
+   * @param bitmap the bitmap to assert
+   * @param name lambda to create a filename from the snapshot name (i.e. the name provided when
+   * taking the snapshot), first parameter is the class name and the second is the test name.
+   * Defaults to `<class-name>_<func-name>.png` limited to 255 chars, replacing all spaces with underscores.
+   * @param filePath where the screenshots should be store in project under [com.dropbox.dropshots.DropshotsExtension.referenceOutputDirectory]
+   */
+  @Deprecated("Use assertSnapshot(fileName: (String, String) -> String, filePath: String?) instead")
   @Suppress("LongMethod")
   public fun assertSnapshot(
     bitmap: Bitmap,
-    name: String = snapshotName,
+    name: String,
+    filePath: String? = null,
+  ) : Unit = assertSnapshot(bitmap, { _, _ -> name }, filePath)
+
+  /**
+   * Compares a screenshot of the view to a reference screenshot from the test application's assets.
+   *
+   * If `BuildConfig.IS_RECORD_SCREENSHOTS` is set to `true`, then the screenshot will simply be written
+   * to disk to be pulled to the host machine to update the reference images.
+   *
+   * @param fileName lambda to create a filename from the snapshot name (i.e. the name provided when
+   * taking the snapshot), first parameter is the class name and the second is the test name.
+   * Defaults to `<class-name>_<func-name>.png` limited to 255 chars, replacing all spaces with underscores.
+   * @param filePath where the screenshots should be store in project under [com.dropbox.dropshots.DropshotsExtension.referenceOutputDirectory]
+   */
+  public fun assertSnapshot(
+    view: View,
+    fileName: (String, String) -> String = defaultFilenameFunc,
+    filePath: String? = null,
+  ): Unit = assertSnapshot(Screenshot.capture(view).bitmap, fileName, filePath)
+
+  /**
+   * Compares a screenshot of the [Activity] to a reference screenshot from the test application's assets.
+   *
+   * If `BuildConfig.IS_RECORD_SCREENSHOTS` is set to `true`, then the screenshot will simply be written
+   * to disk to be pulled to the host machine to update the reference images.
+   *
+   * @param fileName lambda to create a filename from the snapshot name (i.e. the name provided when
+   * taking the snapshot), first parameter is the class name and the second is the test name.
+   * Defaults to `<class-name>_<func-name>.png` limited to 255 chars, replacing all spaces with underscores.
+   * @param filePath where the screenshots should be store in project under [com.dropbox.dropshots.DropshotsExtension.referenceOutputDirectory]
+   */
+  public fun assertSnapshot(
+    activity: Activity,
+    fileName: (String, String) -> String = defaultFilenameFunc,
+    filePath: String? = null,
+  ): Unit = assertSnapshot(Screenshot.capture(activity).bitmap, fileName, filePath)
+
+  /**
+   * Compares a screenshot of the visible screen content to a reference screenshot from the test application's assets.
+   *
+   * If `BuildConfig.IS_RECORD_SCREENSHOTS` is set to `true`, then the screenshot will simply be written
+   * to disk to be pulled to the host machine to update the reference images.
+   *
+   * @param fileName lambda to create a filename from the snapshot name (i.e. the name provided when
+   * taking the snapshot), first parameter is the class name and the second is the test name.
+   * Defaults to `<class name>_<func-name>.png` limited to 255 chars, replacing all spaces with underscores.
+   * @param filePath where the screenshots should be store in project under [com.dropbox.dropshots.DropshotsExtension.referenceOutputDirectory]
+   */
+  public fun assertSnapshot(
+    fileName: (String, String) -> String = defaultFilenameFunc,
+    filePath: String? = null,
+  ): Unit = assertSnapshot(Screenshot.capture().bitmap, fileName, filePath)
+
+
+  /**
+   * Compares a [bitmap] to a reference screenshot from the test application's assets.
+   *
+   * If `BuildConfig.IS_RECORD_SCREENSHOTS` is set to `true`, then the screenshot will simply be written
+   * to disk to be pulled to the host machine to update the reference images.
+   *
+   * @param bitmap the bitmap to assert
+   * @param fileName lambda to create a filename from the snapshot name (i.e. the name provided when
+   * taking the snapshot), first parameter is the class name and the second is the test name.
+   * Defaults to `<class name>_<func-name>.png` limited to 255 chars, replacing all spaces with underscores.
+   * @param filePath where the screenshots should be store in project under [com.dropbox.dropshots.DropshotsExtension.referenceOutputDirectory]
+   */
+  @Suppress("LongMethod")
+  public fun assertSnapshot(
+    bitmap: Bitmap,
+    fileName: (String, String) -> String = defaultFilenameFunc,
     filePath: String? = null,
   ) {
-    val filename = filenameFunc(name)
+    // Some CI filesystems don't support spaces in artifact names so we also have to replace them with underscores.
+    val filename = fileName(className, testName).replace(" ", "_")
+    require(filename.length < 255 - "_diff".length){
+      "Screenshot file-name exceeds max length: $filename"
+    }
 
     val reference = try {
       context.assets.open("$filename.png".prependPath(filePath)).use {
@@ -132,7 +223,7 @@ public class Dropshots internal constructor(
       if (!recordScreenshots) {
         throw IllegalStateException(
           "Failed to find reference image named /$filename.png at path $filePath . " +
-            "If this is a new test, you may need to record screenshots by adding `dropshots.record=true` to your gradle.properties file, or gradlew with `-Pdropshots.record`.",
+            "If this is a new test, you may need to record screenshots by running the record<variantSlug>Screenshots gradle task",
           e
         )
       }
@@ -146,7 +237,7 @@ public class Dropshots internal constructor(
       if (!recordScreenshots) {
         val outputPath = writeDiffImage(filename, filePath, bitmap, reference, null)
         throw AssertionError(
-          "$name: Test image (w=${bitmap.width}, h=${bitmap.height}) differs in size" +
+          "$filename: Test image (w=${bitmap.width}, h=${bitmap.height}) differs in size" +
             " from reference image (w=${reference.width}, h=${reference.height}).\n" +
             "Diff written to: $outputPath",
         )
@@ -179,7 +270,7 @@ public class Dropshots internal constructor(
       if (!recordScreenshots) {
         val outputPath = writeDiffImage(filename, filePath, bitmap, reference, mask)
         throw AssertionError(
-          "\"$name\" failed to match reference image. ${result.pixelDifferences} pixels differ " +
+          "\"$filename\" failed to match reference image. ${result.pixelDifferences} pixels differ " +
             "(${(result.pixelDifferences / result.pixelCount.toFloat()) * 100} %)\n" +
             "Output written to: $outputPath"
         )
@@ -205,19 +296,25 @@ public class Dropshots internal constructor(
     filePath: String?,
     screenshot: Bitmap,
     referenceImage: Bitmap,
-    mask: Mask?
+    mask: Mask?,
   ): String {
     val screenshotFolder = File(rootScreenshotDirectory, "diff".appendPath(filePath))
     val diffImage = generateDiffImage(referenceImage, screenshot, mask)
-    return writeImage(screenshotFolder, name, diffImage)
+    return writeImage(screenshotFolder, name, diffImage, "_diff")
   }
 
-  private fun writeImage(dir: File, name: String, image: Bitmap): String {
+  private fun writeImage(dir: File, name: String, image: Bitmap, nameSuffix: String = ""): String {
     if (!dir.exists() && !dir.mkdirs()) {
       throw IllegalStateException("Unable to create screenshot storage directory.")
     }
 
-    val file = File(dir, "${name.replace(" ", "_")}.png")
+    val file = File(dir, "${name.replace(" ", "_")}$nameSuffix.png")
+
+    if (file.exists()){
+      throw IllegalStateException("Unable to create screenshot, file already exists. Please " +
+        "override fileName when calling assertSnapshot and include qualifiers in your file name.")
+    }
+
     file.outputStream().use {
       image.compress(Bitmap.CompressFormat.PNG, 100, it)
     }
@@ -285,23 +382,13 @@ internal fun isRecordingScreenshots(rootScreenshotDirectory: File): Boolean {
 }
 
 /**
- * Creates a filename from the requested name that'll be 64 characters or less.
- *
- * If the requested name is longer that 64 characters, it'll be shortened by
- * encoding the end of the name, leaving the beginning in tact to hopefully provide
- * somewhat human readable names while still trying to prevent collisions.
+ * Creates a filename from class-name and test-name of where the screenshot was taken.
  */
-internal val defaultFilenameFunc = { testName: String ->
-  if (testName.length < 64) {
+internal val defaultFilenameFunc = { className: String?, testName: String ->
+  if (className.isNullOrEmpty()){
     testName
   } else {
-    val prefix = testName.substring(0, 32)
-    val suffix = String(Base64.encode(testName.substring(32).toByteArray(), Base64.DEFAULT)).trim()
-    "${prefix}_$suffix"
-  }.let {
-    // Some CI filesystems don't support spaces in artifact names so we also have to
-    // replace them with underscores.
-    it.replace(" ", "_")
+    "${className}_${testName}"
   }
 }
 
