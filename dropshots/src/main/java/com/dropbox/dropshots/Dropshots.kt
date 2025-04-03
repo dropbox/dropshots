@@ -223,7 +223,7 @@ public class Dropshots internal constructor(
     val file = File(dir, "${name.replace(" ", "_")}.png")
     if (file.exists()){
       throw IllegalStateException("Unable to create screenshot, file already exists. Please " +
-        "override fileName when calling assertSnapshot and include qualifiers in your file name.")
+        "specify name param with something more specific when calling assertSnapshot function")
     }
 
     file.outputStream().use {
