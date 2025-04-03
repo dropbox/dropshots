@@ -140,6 +140,49 @@ class DropshotsPluginTest {
     }
   }
 
+  @Test
+  fun `specifying output directory in extension returns src_test_screenshots`() {
+    val result = gradleRunner
+      .withBuildScript(
+        // language=groovy
+        """
+          plugins {
+            id("com.dropbox.dropshots")
+            alias(libs.plugins.android.library)
+          }
+
+          dropshots {
+              referenceOutputDirectory = "src/test"
+          }
+
+          android {
+            namespace = "com.dropbox.dropshots.test.library"
+            compileSdk = 35
+            defaultConfig.minSdk = 24
+          }
+
+          repositories {
+            mavenCentral()
+            google()
+          }
+
+          dropshots {
+              referenceOutputDirectory.set("test/example")
+          }
+
+          tasks.register("printOutputDirectory") {
+              doLast {
+                  println(dropshots.referenceOutputDirectory.get())
+              }
+          }
+        """.trimIndent()
+      )
+      .withArguments("printOutputDirectory")
+      .build()
+    assertThat(result.output).contains("test/example")
+  }
+
+
   private fun GradleRunner.withBuildScript(buildScript: String): GradleRunner {
     buildFile.writeText(buildScript)
     return this
