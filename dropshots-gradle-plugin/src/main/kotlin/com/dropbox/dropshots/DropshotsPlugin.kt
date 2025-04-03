@@ -88,6 +88,7 @@ public class DropshotsPlugin : Plugin<Project> {
         "record${variantSlug}Screenshots",
         Copy::class.java,
       ) {
+        it.group = "verification"
         it.description = "Updates the local reference screenshots"
         it.from(
           testTaskProvider.flatMap {
