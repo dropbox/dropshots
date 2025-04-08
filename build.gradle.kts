@@ -10,6 +10,8 @@ plugins {
   alias(libs.plugins.mavenPublish)
 }
 
+val releaseVersion = !version.toString().endsWith("-SNAPSHOT")
+
 allprojects {
   group = project.property("GROUP") as String
   version = project.property("VERSION_NAME") as String
@@ -22,7 +24,12 @@ allprojects {
   plugins.withId("com.vanniktech.maven.publish.base") {
     configure<MavenPublishBaseExtension> {
       publishToMavenCentral(SonatypeHost.S01)
-      signAllPublications()
+
+      signAllPublications().also {
+        project.extensions.getByType<SigningExtension>().isRequired =
+          releaseVersion && gradle.taskGraph.allTasks.any { it is PublishToMavenRepository }
+
+      }
 
       pomFromGradleProperties()
     }

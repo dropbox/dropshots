@@ -85,7 +85,7 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: ./gradlew test --no-daemon --stacktrace
+          script: ./gradlew check --no-daemon --stacktrace
 
       - name: (Fail-only) Bundle test reports
         if: failure()
