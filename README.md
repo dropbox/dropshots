@@ -23,7 +23,7 @@ Apply the plugin in your module's `build.gradle` file.
 plugins {
   id("com.android.application")
   // or id("com.android.library")
-  id("com.dropbox.dropshots") version "0.4.2"
+  id("com.dropbox.dropshots") version "0.5.0"
 }
 ```
 
@@ -48,7 +48,7 @@ buildscript {
     mavenCentral()
   }
   dependencies {
-    classpath "com.dropbox.dropshots:dropshots-gradle-plugin:0.4.2"
+    classpath "com.dropbox.dropshots:dropshots-gradle-plugin:0.5.0"
   }
 }
 
@@ -94,27 +94,42 @@ class MyTest {
     fun testMatchesFullScreenshot() {
         activityScenarioRule.scenario.onActivity {
             // Assert full-screen snapshots
-            dropshots.assertSnapshot("MatchesFullScreenshot")
+            dropshots.assertSnapshot()
         }
     }
 
     @Test
     fun testMatchesActivityScreenshot() {
         activityScenarioRule.scenario.onActivity {
-            // Assert activity snapshots
-            dropshots.assertSnapshot(it, "MatchesActivityScreenshot")
+            // Assert activity snapshots,
+            dropshots.assertSnapshot(it)
         }
     }
 
     @Test
     fun testMatchesViewScreenshot() {
         activityScenarioRule.scenario.onActivity {
-            // or assert view snapshots.
+            // Assert view snapshots.
             dropshots.assertSnapshot(
-                it.findViewById<View>(android.R.id.content),
-                name = "MatchesViewScreenshot",
-                path = "views/fullscreen" // optional parameter to set path of stored screenshots
+              it.findViewById<View>(android.R.id.content),
             )
+        }
+    }
+
+    @Test
+    fun testMatchesViewScreenshotNightMode() {
+        arrayOf(AppCompatDelegate.MODE_NIGHT_YES, AppCompatDelegate.MODE_NIGHT_NO).forEach { nightMode ->
+            activityScenarioRule.scenario.onActivity {
+                AppCompatDelegate.setDefaultNightMode(nightMode)
+            }
+            activityScenarioRule.scenario.onActivity {
+                val qualifier = if (nightMode == AppCompatDelegate.MODE_NIGHT_YES) "night" else "day"
+                dropshots.assertSnapshot(
+                    it.findViewById<View>(android.R.id.content),
+                    name = "MatchesViewScreenshot_$qualifier", // optional, specifies file name
+                    path = "themes" // optional, sets path of stored screenshots
+                )
+            }
         }
     }
 }
