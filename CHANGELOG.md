@@ -19,7 +19,7 @@ Fixed:
 * Updates Gradle plugin to deprecate the `dropshots.record` property.
 * Updates Gradle plugin "pull" tasks to pull both diff and reference images to build/outputs
 * Changes `Dropshots.filenameFunc` method signature to pass in class-name
-* Changes `Dropshots.assertSnaphsot` to throw `IllegalStateException` if reference or diff image
+* Changes `Dropshots.assertSnapshot` to throw `IllegalStateException` if reference or diff image
   already exists on disk to catch file naming issues (e.g. parameterized tests)
 
 ### Updated Gradle tasks
