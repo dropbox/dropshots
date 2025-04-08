@@ -28,7 +28,6 @@ allprojects {
       signAllPublications().also {
         project.extensions.getByType<SigningExtension>().isRequired =
           releaseVersion && gradle.taskGraph.allTasks.any { it is PublishToMavenRepository }
-
       }
 
       pomFromGradleProperties()
