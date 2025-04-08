@@ -1,16 +1,26 @@
 # Change Log
 
 ## [Unreleased]
-[Unreleased]: https://github.com/dropbox/dropshots/compare/0.4.2...HEAD
+[Unreleased]: https://github.com/dropbox/dropshots/compare/0.5.0...HEAD
 
 New:
 - Nothing yet!
 
 Changed:
-- Updates Gradle plugin to deprecate the `dropshots.record` property.
+- Nothing yet!
 
 Fixed:
 - Nothing yet!
+
+## [0.5.0] = 2025-04-08
+[0.5.0]: https://github.com/dropbox/dropshots/releases/tags/0.5.0
+
+* Adds `dropshots {}` gradle extension to allow configuration of referenceOutputDirectory
+* Updates Gradle plugin to deprecate the `dropshots.record` property.
+* Updates Gradle plugin "pull" tasks to pull both diff and reference images to build/outputs
+* Changes `Dropshots.filenameFunc` method signature to pass in class-name
+* Changes `Dropshots.assertSnapshot` to throw `IllegalStateException` if reference or diff image
+  already exists on disk to catch file naming issues (e.g. parameterized tests)
 
 ### Updated Gradle tasks
 

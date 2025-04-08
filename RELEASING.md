@@ -5,7 +5,7 @@ Releasing
 2. Update the `CHANGELOG.md` for the impending release.
    1. Change the `Unreleased` header to the release version.
    2. Add a link URL to ensure the header link works.
-   3. ADd a new `Unreleased` section to the top.
+   3. Add a new `Unreleased` section to the top.
 3. Update the `README.md` for the impending release.
    1. Change the "Installation" section to reflect the new release version.
 4. `git commit -am "Prepare for release X.Y.Z."` (where X.Y.Z is the new version)
