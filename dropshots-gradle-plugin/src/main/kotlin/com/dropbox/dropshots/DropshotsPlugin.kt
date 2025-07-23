@@ -101,7 +101,7 @@ public class DropshotsPlugin : Plugin<Project> {
       }
 
       val isRecordingScreenshots = project.objects.property(Boolean::class.java)
-      if (hasProperty(recordScreenshotsArg)) {
+      if (providers.gradleProperty(recordScreenshotsArg).isPresent) {
         project.logger.warn("The 'dropshots.record' property has been deprecated and will " +
           "be removed in a future version.")
         isRecordingScreenshots.set(true)
