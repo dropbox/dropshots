@@ -182,6 +182,35 @@ class DropshotsPluginTest {
     assertThat(result.output).contains("test/example")
   }
 
+  @Test
+  fun `dropshot record shows a deprecated warning`() {
+    val result = gradleRunner
+      .withBuildScript(
+        // language=groovy
+        """
+          plugins {
+            id("com.dropbox.dropshots")
+            alias(libs.plugins.android.library)
+          }
+
+          android {
+            namespace = "com.dropbox.dropshots.test.library"
+            compileSdk = 35
+            defaultConfig.minSdk = 24
+          }
+
+          repositories {
+            mavenCentral()
+            google()
+          }
+        """.trimIndent()
+      )
+      .withArguments("tasks", "-Pdropshots.record")
+      .build()
+    assertThat(result.output).contains("The 'dropshots.record' property has been deprecated and will " +
+      "be removed in a future version.")
+  }
+
 
   private fun GradleRunner.withBuildScript(buildScript: String): GradleRunner {
     buildFile.writeText(buildScript)
