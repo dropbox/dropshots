@@ -66,7 +66,7 @@ jobs:
 
       - name: Create AVD and generate snapshot for caching
         if: steps.avd-cache.outputs.cache-hit != 'true'
-        uses: reactivecircus/android-emulator-runner@62dbb605bba737720e10b196cb4220d374026a6d # v2.33.0
+        uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # v2.34.0
         with:
           api-level: 31
           arch: x86_64
@@ -77,7 +77,7 @@ jobs:
           script: echo "Generated AVD snapshot for caching."
 
       - name: Run tests
-        uses: reactivecircus/android-emulator-runner@62dbb605bba737720e10b196cb4220d374026a6d # v2.33.0
+        uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # v2.34.0
         with:
           api-level: 31
           arch: x86_64
@@ -141,7 +141,7 @@ jobs:
 
       - name: Create AVD and generate snapshot for caching
         if: steps.avd-cache.outputs.cache-hit != 'true'
-        uses: reactivecircus/android-emulator-runner@62dbb605bba737720e10b196cb4220d374026a6d # v2.33.0
+        uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # v2.34.0
         with:
           api-level: 31
           arch: x86_64
@@ -154,7 +154,7 @@ jobs:
       - name: Run instrumentation tests
         id: screenshotsverify
         continue-on-error: true
-        uses: reactivecircus/android-emulator-runner@62dbb605bba737720e10b196cb4220d374026a6d # v2.33.0
+        uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # v2.34.0
         with:
           api-level: 31
           arch: x86_64
@@ -183,7 +183,7 @@ jobs:
       # Since commits from actions don't trigger new actions, we validate the new screenshots here
       # before we commit them to ensure there isn't flakiness in the tests.
       - name: Validate updated screenshots
-        uses: reactivecircus/android-emulator-runner@62dbb605bba737720e10b196cb4220d374026a6d # v2.33.0
+        uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # v2.34.0
         if: steps.screenshotsverify.outcome == 'failure' && steps.screenshotspull.outcome == 'success'
         with:
           api-level: 31
