@@ -23,7 +23,7 @@ allprojects {
 
   plugins.withId("com.vanniktech.maven.publish.base") {
     configure<MavenPublishBaseExtension> {
-      publishToMavenCentral(SonatypeHost.S01)
+      publishToMavenCentral()
 
       signAllPublications().also {
         project.extensions.getByType<SigningExtension>().isRequired =
