@@ -1,5 +1,4 @@
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
-import com.vanniktech.maven.publish.SonatypeHost
 
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
@@ -23,7 +22,7 @@ allprojects {
 
   plugins.withId("com.vanniktech.maven.publish.base") {
     configure<MavenPublishBaseExtension> {
-      publishToMavenCentral(SonatypeHost.S01)
+      publishToMavenCentral()
 
       signAllPublications().also {
         project.extensions.getByType<SigningExtension>().isRequired =
