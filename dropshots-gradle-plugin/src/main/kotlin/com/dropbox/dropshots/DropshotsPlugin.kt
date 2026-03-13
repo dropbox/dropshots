@@ -69,14 +69,7 @@ public class DropshotsPlugin : Plugin<Project> {
     adbExecutablePath: Provider<String>,
     dropshotsExtension: DropshotsExtension
   ) where V : HasAndroidTest, V : Variant {
-    val androidTest = variant.androidTest
-    if (androidTest == null) {
-      project.logger.warn(
-        "Variant ${variant.name} does not have an androidTest component. " +
-          "Dropshots tasks will not be created for this variant."
-      )
-      return
-    }
+    val androidTest = variant.androidTest ?: return
 
     val androidTestVariantSlug = androidTest.name.capitalizeFirstChar()
 
