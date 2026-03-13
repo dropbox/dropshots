@@ -56,7 +56,7 @@ public class DropshotsPlugin : Plugin<Project> {
       }
     }
 
-    androidComponents.finalizeDsl {
+    afterEvaluate {
       dependencies.add(
         "androidTestImplementation",
         "com.dropbox.dropshots:dropshots:$VERSION"

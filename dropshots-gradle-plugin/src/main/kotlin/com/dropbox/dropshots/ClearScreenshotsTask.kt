@@ -7,7 +7,11 @@ import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecOperations
+import org.gradle.work.DisableCachingByDefault
 
+@DisableCachingByDefault(
+  because = "The task interacts with the connected test device, so caching is not applicable."
+)
 public abstract class ClearScreenshotsTask : DefaultTask() {
 
   @get:Input
