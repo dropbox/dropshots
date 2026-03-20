@@ -39,12 +39,11 @@ dependencies {
   implementation(libs.androidx.test.runner)
   implementation(libs.androidx.test.rules)
 
-  debugImplementation(libs.androidx.fragment)
-
   testImplementation(platform(libs.kotlin.bom))
   testImplementation(libs.junit)
   testImplementation(libs.kotlin.test)
 
+  androidTestImplementation(libs.androidx.fragment)
   androidTestImplementation(libs.junit)
   androidTestImplementation(libs.androidx.test.core)
   androidTestImplementation(libs.androidx.test.ext.junit)

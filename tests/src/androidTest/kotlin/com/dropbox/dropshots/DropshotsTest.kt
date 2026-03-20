@@ -4,8 +4,8 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Environment
-import android.view.View
 import androidx.test.ext.junit.rules.ActivityScenarioRule
+import androidx.test.platform.app.InstrumentationRegistry
 import com.dropbox.differ.SimpleImageComparator
 import java.io.File
 import org.junit.After
@@ -25,14 +25,12 @@ class DropshotsTest {
 
   private val fakeValidator = FakeResultValidator()
   private var filenameFunc: (String, String) -> String = { _, funcName -> funcName }
-  private val isRecordingScreenshots = isRecordingScreenshots(defaultRootScreenshotDirectory())
   private lateinit var imageDirectory: File
 
   @get:Rule val testName = TestName()
   @get:Rule
   val dropshots = Dropshots(
     filenameFunc = filenameFunc,
-    recordScreenshots = isRecordingScreenshots,
     resultValidator = fakeValidator,
     imageComparator = SimpleImageComparator(
       maxDistance = 0.004f,
@@ -43,7 +41,9 @@ class DropshotsTest {
 
   @Before
   fun setup() {
-    imageDirectory =
+    val context = InstrumentationRegistry.getInstrumentation().targetContext
+    val externalStorageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+    imageDirectory = File(externalStorageDir, "screenshots/${context.packageName}")
       File(
         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
         "screenshots/test-${testName.methodName}",
@@ -57,6 +57,7 @@ class DropshotsTest {
       imageDirectory.deleteRecursively()
     }
   }
+
 
   @Test
   fun testMatchesFullScreenshot() {
@@ -76,7 +77,7 @@ class DropshotsTest {
   fun testMatchesViewScreenshot() {
     activityScenarioRule.scenario.onActivity {
       dropshots.assertSnapshot(
-        it.findViewById<View>(android.R.id.content),
+        it.findViewById(android.R.id.content),
         name = "MatchesViewScreenshot"
       )
     }
@@ -85,7 +86,6 @@ class DropshotsTest {
   @Test
   fun testWritesReferenceImageForMissingImages() {
     val dropshots = Dropshots(
-      rootScreenshotDirectory = imageDirectory,
       filenameFunc = filenameFunc,
       recordScreenshots = true,
       resultValidator = { false },
@@ -105,9 +105,7 @@ class DropshotsTest {
   @Test
   fun testWritesDiffImageOnFailureWhenRecording() {
     val dropshots = Dropshots(
-      rootScreenshotDirectory = imageDirectory,
       filenameFunc = filenameFunc,
-      recordScreenshots = false,
       resultValidator = { false },
       imageComparator = SimpleImageComparator(),
     )
@@ -135,9 +133,7 @@ class DropshotsTest {
   fun testFailsForDifferences() {
     val dropshots = Dropshots(
       resultValidator = CountValidator(0),
-      rootScreenshotDirectory = imageDirectory,
       filenameFunc = filenameFunc,
-      recordScreenshots = false,
       imageComparator = SimpleImageComparator(),
     )
 
@@ -161,7 +157,6 @@ class DropshotsTest {
   fun testPassesWhenValidatorPasses() {
     val dropshots = Dropshots(
       resultValidator = FakeResultValidator { true },
-      rootScreenshotDirectory = imageDirectory,
       filenameFunc = filenameFunc,
       recordScreenshots = false,
       imageComparator = SimpleImageComparator(),
@@ -185,7 +180,6 @@ class DropshotsTest {
   fun testFailsWhenValidatorFails() {
     val dropshots = Dropshots(
       resultValidator = FakeResultValidator { false },
-      rootScreenshotDirectory = imageDirectory,
       filenameFunc = filenameFunc,
       recordScreenshots = false,
       imageComparator = SimpleImageComparator(),
@@ -216,7 +210,6 @@ class DropshotsTest {
   fun fastFailsForMismatchedSize() {
     val dropshots = Dropshots(
       resultValidator = CountValidator(0),
-      rootScreenshotDirectory = imageDirectory,
       filenameFunc = filenameFunc,
       recordScreenshots = false,
       imageComparator = SimpleImageComparator(),

@@ -4,9 +4,13 @@ import javax.inject.Inject
 import java.io.ByteArrayOutputStream
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecOperations
 import org.gradle.work.DisableCachingByDefault
@@ -22,11 +26,21 @@ public abstract class PullScreenshotsTask : DefaultTask() {
   @get:Input
   public abstract val screenshotDir: Property<String>
 
+  @get:Input
+  public abstract val shouldWriteReferences: Property<Boolean>
+
+  @get:InputDirectory
+  @get:PathSensitive(PathSensitivity.RELATIVE)
+  public abstract val referenceOutputDirectory: DirectoryProperty
+
   @get:OutputDirectory
   public abstract val outputDirectory: DirectoryProperty
 
   @get:Inject
   protected abstract val execOperations: ExecOperations
+
+  @get:Inject
+  protected abstract val fileOperations: FileSystemOperations
 
   init {
     description = "Pull screenshots from the test device."
@@ -62,6 +76,13 @@ public abstract class PullScreenshotsTask : DefaultTask() {
       } else {
         println("Unknown result executing adb: $adb pull $dir/. ${outputDir.path}")
         print(output.toString(Charsets.UTF_8))
+      }
+    }
+
+    if(shouldWriteReferences.get()) {
+      fileOperations.copy {
+        it.from(outputDirectory.dir("reference") )
+        it.into(referenceOutputDirectory)
       }
     }
   }

@@ -26,6 +26,8 @@ public abstract class ClearScreenshotsTask : DefaultTask() {
   init {
     description = "Removes the test screenshots from the test device."
     group = "verification"
+
+    outputs.upToDateWhen { false }
   }
 
   @TaskAction

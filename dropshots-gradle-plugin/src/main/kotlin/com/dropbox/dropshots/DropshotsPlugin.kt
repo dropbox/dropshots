@@ -12,7 +12,6 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.Copy
 
 private const val recordScreenshotsArg = "dropshots.record"
 
@@ -87,29 +86,34 @@ public class DropshotsPlugin : Plugin<Project> {
       it.screenshotDir.set(deviceScreenshotDir)
     }
 
+    val isRecordingScreenshots = project.objects.property(Boolean::class.java)
+
+    val canRecordScreenshots = dropshotsExtension.recordOnFailure.map {
+      project.state.failure != null || it
+    }
+
     val pullScreenshotsTask = tasks.register(
       "pull${androidTestVariantSlug}Screenshots",
       PullScreenshotsTask::class.java,
-    ) {
-      it.adbExecutable.set(adbExecutablePath)
-      it.screenshotDir.set(deviceScreenshotDir)
-      it.outputDirectory.set(buildScreenshotDir)
-      it.finalizedBy(clearScreenshotsTask)
+    ) { task ->
+      task.adbExecutable.set(adbExecutablePath)
+      task.screenshotDir.set(deviceScreenshotDir)
+      task.outputDirectory.set(buildScreenshotDir)
+      task.shouldWriteReferences.set(isRecordingScreenshots.map { it && (canRecordScreenshots.get()) })
+      task.referenceOutputDirectory.set(dropshotsExtension.referenceOutputDirectory.map { layout.projectDirectory.dir(it) })
     }
 
     val recordScreenshotsTask = tasks.register(
       "record${androidTestVariantSlug}Screenshots",
-      Copy::class.java,
     ) { task ->
       task.group = "verification"
-      task.description = "Updates the local reference screenshots"
-      task.from(pullScreenshotsTask.flatMap { it.outputDirectory.dir("reference") })
-      task.into(dropshotsExtension.referenceOutputDirectory)
+      task.description = "Indicates that local reference screenshots should be updated"
+      // This task being present on the task graph is used as an indicator that we should update
+      // source screenshots. The actual work is performed in pullScreenshotsTask since it is
+      // a finalizer task.
       task.dependsOn(testTaskName)
-      task.finalizedBy(clearScreenshotsTask)
     }
 
-    val isRecordingScreenshots = project.objects.property(Boolean::class.java)
     if (providers.gradleProperty(recordScreenshotsArg).isPresent) {
       project.logger.warn(
         "The 'dropshots.record' property has been deprecated and will " +
@@ -129,7 +133,7 @@ public class DropshotsPlugin : Plugin<Project> {
       task.adbExecutable.set(adbExecutablePath)
       task.fileContents.set("\n")
       task.remotePath.set(deviceScreenshotDir.map { "$it/.isRecordingScreenshots" })
-      task.finalizedBy(clearScreenshotsTask)
+      task.dependsOn(clearScreenshotsTask)
     }
 
     tasks.named { it == testTaskName }.configureEach {
