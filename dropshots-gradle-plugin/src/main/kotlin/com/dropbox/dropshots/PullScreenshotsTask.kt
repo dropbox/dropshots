@@ -29,9 +29,8 @@ public abstract class PullScreenshotsTask : DefaultTask() {
   @get:Input
   public abstract val shouldWriteReferences: Property<Boolean>
 
-  @get:InputDirectory
-  @get:PathSensitive(PathSensitivity.RELATIVE)
-  public abstract val referenceOutputDirectory: DirectoryProperty
+  @get:Input
+  public abstract val referenceOutputDirectory: Property<String>
 
   @get:OutputDirectory
   public abstract val outputDirectory: DirectoryProperty

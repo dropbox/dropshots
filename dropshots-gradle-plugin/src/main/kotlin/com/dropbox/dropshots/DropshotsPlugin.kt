@@ -100,7 +100,7 @@ public class DropshotsPlugin : Plugin<Project> {
       task.screenshotDir.set(deviceScreenshotDir)
       task.outputDirectory.set(buildScreenshotDir)
       task.shouldWriteReferences.set(isRecordingScreenshots.map { it && (canRecordScreenshots.get()) })
-      task.referenceOutputDirectory.set(dropshotsExtension.referenceOutputDirectory.map { layout.projectDirectory.dir(it) })
+      task.referenceOutputDirectory.set(dropshotsExtension.referenceOutputDirectory)
     }
 
     val recordScreenshotsTask = tasks.register(

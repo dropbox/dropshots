@@ -21,12 +21,30 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
-public class Dropshots internal constructor(
-  private val rootScreenshotDirectory: File,
-  private val filenameFunc: (String, String) -> String,
-  private val recordScreenshots: Boolean,
-  private val imageComparator: ImageComparator,
-  private val resultValidator: ResultValidator,
+
+public class Dropshots @JvmOverloads public constructor(
+  /**
+   * Function to create a filename from the class name and snapshot name (i.e. the name provided when taking
+   * the snapshot). Default behavior will use the calling function name.
+   */
+  private val filenameFunc: (String, String) -> String = defaultFilenameFunc,
+  /**
+   * Indicates whether new reference screenshots should be recorded. Otherwise Dropshots performs
+   * validation of test screenshots against reference screenshots.
+   */
+  public val recordScreenshots: Boolean = isRecordingScreenshots(defaultRootScreenshotDirectory()),
+  /**
+   * The `ImageComparator` used to compare test and reference screenshots.
+   */
+  private val imageComparator: ImageComparator = SimpleImageComparator(maxDistance = 0.004f),
+  /**
+   * The `ResultValidator` used to validate the comparison results.
+   */
+  private val resultValidator: ResultValidator = CountValidator(0),
+  /**
+   * Device directory where screenshots will be written.
+   */
+  public val rootScreenshotDirectory: File = defaultRootScreenshotDirectory(),
 ) : TestRule {
   private val context = InstrumentationRegistry.getInstrumentation().context
   private var fqName: String = ""
@@ -35,28 +53,6 @@ public class Dropshots internal constructor(
   private var testName: String = ""
 
   private val snapshotName: String get() = testName
-
-  @JvmOverloads
-  public constructor(
-    /**
-     * Function to create a filename from the class name and snapshot name (i.e. the name provided when taking
-     * the snapshot). Default behavior will use the calling function name.
-     */
-    filenameFunc: (String, String) -> String = defaultFilenameFunc,
-    /**
-     * Indicates whether new reference screenshots should be recorded. Otherwise Dropshots performs
-     * validation of test screenshots against reference screenshots.
-     */
-    recordScreenshots: Boolean = isRecordingScreenshots(defaultRootScreenshotDirectory()),
-    /**
-     * The `ImageComparator` used to compare test and reference screenshots.
-     */
-    imageComparator: ImageComparator = SimpleImageComparator(maxDistance = 0.004f),
-    /**
-     * The `ResultValidator` used to validate the comparison results.
-     */
-    resultValidator: ResultValidator = CountValidator(0),
-  ): this(defaultRootScreenshotDirectory(), filenameFunc, recordScreenshots, imageComparator, resultValidator)
 
   override fun apply(base: Statement, description: Description): Statement {
     fqName = description.className

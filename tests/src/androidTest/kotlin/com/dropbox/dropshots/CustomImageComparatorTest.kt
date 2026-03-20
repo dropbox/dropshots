@@ -1,11 +1,14 @@
 package com.dropbox.dropshots
 
+import android.os.Environment
 import android.view.View
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import com.dropbox.differ.Image
 import com.dropbox.differ.ImageComparator
 import com.dropbox.differ.ImageComparator.ComparisonResult
 import com.dropbox.differ.Mask
+import java.io.File
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -13,10 +16,16 @@ import org.junit.Test
 class CustomImageComparatorTest {
   @get:Rule
   val activityScenarioRule = ActivityScenarioRule(TestActivity::class.java)
+
+  private val imageDirectory = File(
+    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+    "screenshots/custom-image-comparator-test",
+  )
   val comparator = FakeImageComparator()
 
   @get:Rule
   val dropshots = Dropshots(
+    rootScreenshotDirectory = imageDirectory,
     imageComparator = comparator,
     resultValidator = CountValidator(0),
   )
@@ -29,6 +38,12 @@ class CustomImageComparatorTest {
         .commitNow()
     }
   }
+
+  @After
+  fun after() {
+    imageDirectory.deleteRecursively()
+  }
+
 
   @Test
   fun imageComparatorIsConfigurable() {
