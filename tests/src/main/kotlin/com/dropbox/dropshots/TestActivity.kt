@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 
-public class TestActivity : androidx.fragment.app.FragmentActivity()  {
+class TestActivity : androidx.fragment.app.FragmentActivity()  {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(

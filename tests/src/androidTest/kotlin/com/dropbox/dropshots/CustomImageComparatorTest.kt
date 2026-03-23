@@ -26,8 +26,6 @@ class CustomImageComparatorTest {
   @get:Rule
   val dropshots = Dropshots(
     rootScreenshotDirectory = imageDirectory,
-    filenameFunc = defaultFilenameFunc,
-    recordScreenshots = false,
     imageComparator = comparator,
     resultValidator = CountValidator(0),
   )
@@ -45,6 +43,7 @@ class CustomImageComparatorTest {
   fun after() {
     imageDirectory.deleteRecursively()
   }
+
 
   @Test
   fun imageComparatorIsConfigurable() {

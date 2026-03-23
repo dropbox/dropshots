@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Environment
-import android.view.View
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import com.dropbox.differ.SimpleImageComparator
 import java.io.File
@@ -25,14 +24,12 @@ class DropshotsTest {
 
   private val fakeValidator = FakeResultValidator()
   private var filenameFunc: (String, String) -> String = { _, funcName -> funcName }
-  private val isRecordingScreenshots = isRecordingScreenshots(defaultRootScreenshotDirectory())
   private lateinit var imageDirectory: File
 
   @get:Rule val testName = TestName()
   @get:Rule
   val dropshots = Dropshots(
     filenameFunc = filenameFunc,
-    recordScreenshots = isRecordingScreenshots,
     resultValidator = fakeValidator,
     imageComparator = SimpleImageComparator(
       maxDistance = 0.004f,
@@ -43,8 +40,7 @@ class DropshotsTest {
 
   @Before
   fun setup() {
-    imageDirectory =
-      File(
+    imageDirectory = File(
         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
         "screenshots/test-${testName.methodName}",
       )
@@ -57,6 +53,7 @@ class DropshotsTest {
       imageDirectory.deleteRecursively()
     }
   }
+
 
   @Test
   fun testMatchesFullScreenshot() {
@@ -76,7 +73,7 @@ class DropshotsTest {
   fun testMatchesViewScreenshot() {
     activityScenarioRule.scenario.onActivity {
       dropshots.assertSnapshot(
-        it.findViewById<View>(android.R.id.content),
+        it.findViewById(android.R.id.content),
         name = "MatchesViewScreenshot"
       )
     }

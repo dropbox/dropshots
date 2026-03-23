@@ -1,11 +1,11 @@
-import com.android.build.gradle.tasks.SourceJarTask
 import com.vanniktech.maven.publish.GradlePlugin
 import com.vanniktech.maven.publish.JavadocJar.Dokka
-import org.gradle.jvm.tasks.Jar
+import org.gradle.kotlin.dsl.provideDelegate
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.io.FileOutputStream
+import java.util.Properties
+import kotlin.apply
 
 plugins {
   `java-gradle-plugin`
@@ -15,31 +15,13 @@ plugins {
   alias(libs.plugins.binaryCompatibilityValidator)
 }
 
-buildscript {
-  repositories {
-    mavenCentral()
-    gradlePluginPortal()
-  }
-}
-
-repositories {
-  mavenCentral()
-  gradlePluginPortal()
-}
-
-sourceSets {
-  main.configure {
-    java.srcDir("src/generated/kotlin")
-  }
-}
-
 mavenPublishing {
   configure(GradlePlugin(Dokka("dokkaJavadoc")))
 }
 
-val generateVersionTask = tasks.register("generateVersion") {
+val generateVersionTask: TaskProvider<*> = tasks.register("generateVersion") {
   inputs.property("version", project.property("VERSION_NAME") as String)
-  outputs.dir(project.layout.projectDirectory.dir("src/generated/kotlin"))
+  outputs.dir(layout.buildDirectory.dir("generated/generateVersion"))
 
   doLast {
     val output = File(outputs.files.first(), "com/dropbox/dropshots/Version.kt")
@@ -52,23 +34,9 @@ val generateVersionTask = tasks.register("generateVersion") {
   }
 }
 
-tasks.withType<Jar>().configureEach {
-  dependsOn(generateVersionTask)
-}
-
-tasks.named("dokkaJavadoc").configure {
-  dependsOn(generateVersionTask)
-}
-
-tasks.named("compileKotlin").configure {
-  dependsOn(generateVersionTask)
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-  compilerOptions {
-    jvmTarget.set(JvmTarget.JVM_11)
-    apiVersion.set(KotlinVersion.KOTLIN_1_8)
-    languageVersion.set(KotlinVersion.KOTLIN_1_8)
+sourceSets {
+  main.configure {
+    java.srcDir(generateVersionTask.map { it.outputs.files })
   }
 }
 
@@ -77,6 +45,11 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 kotlin {
+  compilerOptions {
+    jvmTarget.set(JvmTarget.JVM_11)
+    apiVersion.set(KotlinVersion.KOTLIN_2_0)
+    languageVersion.set(KotlinVersion.KOTLIN_2_0)
+  }
   explicitApi()
 }
 
@@ -89,20 +62,29 @@ gradlePlugin {
   }
 }
 
-// See https://github.com/slackhq/keeper/pull/11#issuecomment-579544375 for context
-val releaseMode = hasProperty("dropshots.releaseMode")
-dependencies {
-  compileOnly(gradleApi())
-  implementation(platform(libs.kotlin.bom))
-  // Don't impose our version of KGP on consumers
-
-  if (releaseMode) {
-    compileOnly(libs.android)
-    compileOnly(libs.kotlin.plugin)
-  } else {
-    implementation(libs.android)
-    implementation(libs.kotlin.plugin)
+val addTestPlugin: Configuration = configurations.create("addTestPlugin") {
+  attributes {
+    attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.JAR_TYPE)
   }
+}
+
+configurations { testImplementation.get().extendsFrom(addTestPlugin) }
+
+tasks.pluginUnderTestMetadata {
+  // make sure the test can access plugins for coordination.
+  pluginClasspath.from(addTestPlugin)
+}
+dependencies {
+  addTestPlugin(gradleApi())
+  addTestPlugin(libs.android)
+  addTestPlugin(libs.kotlin.plugin)
+
+
+  compileOnly(gradleApi())
+  compileOnly(libs.android)
+  compileOnly(libs.kotlin.plugin)
+
+  implementation(platform(libs.kotlin.bom))
 
   testImplementation(gradleTestKit())
   testImplementation(platform(libs.kotlin.bom))

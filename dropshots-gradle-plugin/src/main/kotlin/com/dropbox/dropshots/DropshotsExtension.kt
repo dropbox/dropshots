@@ -12,4 +12,12 @@ public abstract class DropshotsExtension @Inject constructor(objects: ObjectFact
    */
   public val referenceOutputDirectory: Property<String> = objects.property(String::class.java)
     .convention("src/androidTest/screenshots")
+
+  /**
+   * Whether to record screenshots on test failure. If true and recording is enabled, the
+   * screenshots from the test device will be pulled and saved to the [referenceOutputDirectory]
+   * even if the test fails.
+   */
+  public val recordOnFailure: Property<Boolean> = objects.property(Boolean::class.java)
+    .convention(true)
 }

@@ -3,14 +3,14 @@
 ## [Unreleased]
 [Unreleased]: https://github.com/dropbox/dropshots/compare/0.5.0...HEAD
 
-New:
-- Nothing yet!
-
-Changed:
-- Nothing yet!
-
-Fixed:
-- Nothing yet!
+* Support for newDsl in Android Gradle Plugin 9.0.0
+* Changes default behavior of `recordDebugAndroidTestScreenshots` task to record screenshots even
+  if tests fail. This behavior can be disabled by setting `dropshots.recordOnFailure = false`
+  on the Gradle plugin configuration.
+* Exposed `Dropshots.recordScreenshots` as a public API to allow detecting whether screenshots are
+  being recorded in the current test run.
+* Added new optional argument to `Dropshots` constructor. `rootScreenshotDirectory` allows users to
+  specify a custom root directory for screenshots on the device.
 
 ## [0.5.0] = 2025-04-08
 [0.5.0]: https://github.com/dropbox/dropshots/releases/tags/0.5.0

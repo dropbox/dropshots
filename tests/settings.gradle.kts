@@ -4,17 +4,18 @@ pluginManagement {
     mavenCentral()
     google()
   }
+  includeBuild("..")
 }
 
 dependencyResolutionManagement {
   repositories {
     mavenCentral()
     google()
-    gradlePluginPortal()
   }
 }
 
-rootProject.name = "dropshots-root"
-
-include(":dropshots-gradle-plugin")
-include(":dropshots")
+includeBuild("..") {
+  dependencySubstitution {
+    substitute(module("com.dropbox:dropshots")).using(project(":dropshots"))
+  }
+}

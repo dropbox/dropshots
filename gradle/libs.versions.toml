@@ -1,6 +1,6 @@
 [versions]
-kotlin = "2.0.21"
-agp = "8.7.2"
+kotlin = "2.2.21"
+agp = "9.1.0"
 
 [libraries]
 android = { module = "com.android.tools.build:gradle", version.ref = "agp" }

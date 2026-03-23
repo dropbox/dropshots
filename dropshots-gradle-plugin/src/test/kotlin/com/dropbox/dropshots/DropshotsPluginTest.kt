@@ -7,14 +7,28 @@ import org.gradle.testkit.runner.TaskOutcome
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import org.junit.rules.TemporaryFolder
 
-class DropshotsPluginTest {
+@RunWith(Parameterized::class)
+class DropshotsPluginTest(private val agpVersion: String) {
 
   @get:Rule val tmpFolder = TemporaryFolder()
 
   private lateinit var buildFile: File
   private lateinit var gradleRunner: GradleRunner
+
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters(name = "AGP {0}")
+    fun agpVersions(): Collection<Array<Any>> {
+      return listOf(
+        arrayOf("8.7.2"),
+        arrayOf("9.1.0"),
+      )
+    }
+  }
 
   @Before
   fun setup() {
@@ -59,7 +73,7 @@ class DropshotsPluginTest {
       // language=groovy
       """
         plugins {
-          alias(libs.plugins.android.library)
+          id("com.android.library") version "$agpVersion"
           id("com.dropbox.dropshots")
         }
 
@@ -97,7 +111,7 @@ class DropshotsPluginTest {
         """
           plugins {
             id("com.dropbox.dropshots")
-            alias(libs.plugins.android.library)
+            id("com.android.library") version "$agpVersion"
           }
 
           android {
@@ -121,8 +135,9 @@ class DropshotsPluginTest {
   @Test
   fun `executes marker file push only when record task is run`() {
     val result = gradleRunner
-      .withArguments("recordDebugAndroidTestScreenshots")
+      .withArguments("recordDebugAndroidTestScreenshots", "--stacktrace")
       .build()
+    println(result.output)
     with(result.task(":pushDebugAndroidTestScreenshotMarkerFile")) {
       assertThat(this).isNotNull()
       assertThat(this!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
@@ -148,7 +163,7 @@ class DropshotsPluginTest {
         """
           plugins {
             id("com.dropbox.dropshots")
-            alias(libs.plugins.android.library)
+            id("com.android.library") version "$agpVersion"
           }
 
           dropshots {
@@ -190,7 +205,7 @@ class DropshotsPluginTest {
         """
           plugins {
             id("com.dropbox.dropshots")
-            alias(libs.plugins.android.library)
+            id("com.android.library") version "$agpVersion"
           }
 
           android {
