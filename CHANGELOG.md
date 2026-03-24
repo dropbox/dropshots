@@ -1,7 +1,7 @@
 # Change Log
 
-## [Unreleased]
-[Unreleased]: https://github.com/dropbox/dropshots/compare/0.5.0...HEAD
+## [0..6.0]
+[0.6.0]: https://github.com/dropbox/dropshots/releases/tags/0.6.0
 
 * Support for newDsl in Android Gradle Plugin 9.0.0
 * Changes default behavior of `recordDebugAndroidTestScreenshots` task to record screenshots even
