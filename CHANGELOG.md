@@ -1,5 +1,17 @@
 # Change Log
 
+## [Unreleased]
+[Unreleased]: https://github.com/dropbox/dropshots/compare/0.6.0...HEAD
+
+New:
+- Nothing yet!
+
+Changed:
+- Nothing yet!
+
+Fixed:
+- Nothing yet!
+
 ## [0..6.0]
 [0.6.0]: https://github.com/dropbox/dropshots/releases/tags/0.6.0
 
