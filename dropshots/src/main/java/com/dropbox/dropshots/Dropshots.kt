@@ -272,7 +272,7 @@ public class Dropshots @JvmOverloads public constructor(
 }
 
 internal fun defaultRootScreenshotDirectory(): File {
-  val context = InstrumentationRegistry.getInstrumentation().targetContext
+  val context = InstrumentationRegistry.getInstrumentation().context
   val externalStorageDir = Environment
     .getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
   return File(externalStorageDir, "screenshots/${context.packageName}")
