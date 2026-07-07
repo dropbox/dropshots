@@ -140,7 +140,7 @@ Activity or View will be validated against the reference images stored in the re
 screenshots fail to match the reference images (within configurable thresholds), then an image will
 be written to the test report folder that shows the reference image, the actual image, and the diff
 of the two. By default, the test report folder is
-`${project.buildDir}/outputs/androidTest-results/connected`.
+`${project.buildDir}/test-results/dropshots`.
 
 The first time you create a screenshot test, however, there won't be any reference images, so you'll
 have to create them...
