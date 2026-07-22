@@ -93,7 +93,7 @@ jobs:
 
       - name: (Fail-only) Upload the build report
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: unit-test-report
           path: unit-test-build-reports.zip
@@ -208,7 +208,7 @@ jobs:
 
       - name: Upload the build report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: instrumentation-test-report
           path: instrumentation-test-build-reports.zip
